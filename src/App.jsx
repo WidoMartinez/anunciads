@@ -126,20 +126,13 @@ const App = () => {
 		setSelectedPlan(plan.name);
 		setIsLoading(true);
 		try {
-			const response = await axios.post(
-				"http://localhost:8080/create_preference",
-				{
-					title: plan.name,
-					// Convierte el precio de string a número para el backend
-					price: parseFloat(plan.currentPrice.replace(/[^0-9]/g, "")),
-					quantity: 1,
-				}
-			);
+			// Esta línea leerá la URL desde el archivo .env
+			const apiUrl = `${import.meta.env.VITE_API_URL}/create_preference`;
+			const response = await axios.post(apiUrl, {
+				/* ...datos del plan... */
+			});
 
-			// --- CAMBIO CLAVE: REDIRECCIÓN ---
-			// Tomamos la URL que nos da el backend y redirigimos al usuario.
-			const { redirectUrl } = response.data;
-			window.location.href = redirectUrl;
+			window.location.href = response.data.redirectUrl;
 		} catch (error) {
 			console.error("Error al crear la preferencia:", error);
 			alert("Error al generar el link de pago. Intenta de nuevo.");
