@@ -35,17 +35,17 @@ import axios from "axios";
 // Importar imágenes
 import dashboardHero from "./assets/dashboard-hero.png";
 
-// Para el flujo de redirección (Checkout Pro), no se necesita el SDK de React de Mercado Pago aquí.
+// Para el flujo de redirección (Checkout Pro), no se necesita el SDK de React de Mercado Pago en este archivo.
 
 const App = () => {
 	const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
 	const [isPopupOpen, setIsPopupOpen] = useState(false);
 
-	// --- ESTADO SIMPLIFICADO PARA EL PAGO ---
+	// Estado para manejar la carga del botón de pago
 	const [isLoading, setIsLoading] = useState(false);
 	const [selectedPlan, setSelectedPlan] = useState(null);
-	// --- FIN ESTADO SIMPLIFICADO ---
 
+	// Lógica del formulario de contacto
 	const [contactFormData, setContactFormData] = useState({
 		name: "",
 		website: "",
@@ -65,7 +65,6 @@ const App = () => {
 
 		const message = `
 ¡Hola! Tengo una consulta desde el formulario de contacto principal:
-
 *Nombre:* ${contactFormData.name}
 *Email:* ${contactFormData.email}
 *Teléfono:* ${contactFormData.phone}
@@ -75,14 +74,14 @@ const App = () => {
 		const encodedMessage = encodeURIComponent(message);
 		const whatsappUrl = `https://api.whatsapp.com/send/?phone=56939363916&text=${encodedMessage}`;
 
-		// Pequeño delay para que el usuario vea el feedback
 		setTimeout(() => {
 			window.open(whatsappUrl, "_blank");
-			setContactFormData({ name: "", website: "", phone: "", email: "" }); // Limpiar formulario
-			setFormStatus("idle"); // Resetear estado del botón
+			setContactFormData({ name: "", website: "", phone: "", email: "" });
+			setFormStatus("idle");
 		}, 500);
 	};
 
+	// Lógica para el popup de descuento
 	useEffect(() => {
 		const popupShown = localStorage.getItem("discountPopupShown");
 		if (!popupShown) {
@@ -98,6 +97,7 @@ const App = () => {
 		localStorage.setItem("discountPopupShown", "true");
 	};
 
+	// Lógica para el modo oscuro/claro
 	const [isDarkMode, setIsDarkMode] = useState(() => {
 		if (typeof window !== "undefined") {
 			const savedTheme = localStorage.getItem("theme");
@@ -121,26 +121,37 @@ const App = () => {
 		setIsDarkMode(!isDarkMode);
 	};
 
-	// --- FUNCIÓN DE COMPRA MODIFICADA PARA REDIRECCIÓN ---
+	/**
+	 * Maneja el proceso de compra.
+	 * 1. Muestra un estado de carga.
+	 * 2. Llama al backend (usando la URL de la variable de entorno) para crear una preferencia de pago.
+	 * 3. Recibe una URL de redirección de Mercado Pago.
+	 * 4. Redirige al usuario a esa URL para que complete el pago.
+	 */
 	const handleBuy = async (plan) => {
 		setSelectedPlan(plan.name);
 		setIsLoading(true);
 		try {
-			// Esta línea leerá la URL desde el archivo .env
+			// La URL del backend se toma de la variable de entorno, ideal para producción.
 			const apiUrl = `${import.meta.env.VITE_API_URL}/create_preference`;
+
 			const response = await axios.post(apiUrl, {
-				/* ...datos del plan... */
+				title: plan.name,
+				price: parseFloat(plan.currentPrice.replace(/[^0-9]/g, "")),
+				quantity: 1,
 			});
 
-			window.location.href = response.data.redirectUrl;
+			// Redirigimos al usuario a la página de pago de Mercado Pago.
+			const { redirectUrl } = response.data;
+			window.location.href = redirectUrl;
 		} catch (error) {
 			console.error("Error al crear la preferencia:", error);
 			alert("Error al generar el link de pago. Intenta de nuevo.");
-			setIsLoading(false); // Detenemos la carga si hay un error
+			setIsLoading(false); // Detenemos la carga si hay un error.
 		}
 	};
-	// --- FIN FUNCIÓN DE COMPRA ---
 
+	// Datos de los planes de servicio
 	const प्लांस = [
 		{
 			name: "Plan Básico",
