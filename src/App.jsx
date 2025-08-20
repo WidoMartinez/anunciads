@@ -30,12 +30,9 @@ import DiscountPopup from "./DiscountPopup";
 import Chatbot from "./Chatbot.jsx";
 import FloatingHelpWidget from "./FloatingHelpWidget.jsx";
 import GradientText from "./GradientText.jsx";
-import axios from "axios";
 
 // Importar imágenes
 import dashboardHero from "./assets/dashboard-hero.png";
-
-// Para el flujo de redirección (Checkout Pro), no se necesita el SDK de React de Mercado Pago en este archivo.
 
 const App = () => {
 	const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
@@ -122,33 +119,28 @@ const App = () => {
 	};
 
 	/**
-	 * Maneja el proceso de compra.
-	 * 1. Muestra un estado de carga.
-	 * 2. Llama al backend (usando la URL de la variable de entorno) para crear una preferencia de pago.
-	 * 3. Recibe una URL de redirección de Mercado Pago.
-	 * 4. Redirige al usuario a esa URL para que complete el pago.
+	 * Abre un chat de WhatsApp con la información del plan seleccionado.
 	 */
-	const handleBuy = async (plan) => {
+	const handleBuy = (plan) => {
 		setSelectedPlan(plan.name);
 		setIsLoading(true);
-		try {
-			// La URL del backend se toma de la variable de entorno, ideal para producción.
-			const apiUrl = `${import.meta.env.VITE_API_URL}/create_preference`;
 
-			const response = await axios.post(apiUrl, {
-				title: plan.name,
-				price: parseFloat(plan.currentPrice.replace(/[^0-9]/g, "")),
-				quantity: 1,
-			});
+		// 1. Creamos el mensaje pre-llenado con los detalles del plan.
+		const message = `¡Hola! Estoy interesado/a en contratar el *${plan.name}*.\n\nPrecio de oferta: ${plan.currentPrice} ${plan.period}.\n\n¿Podrían darme más información sobre los siguientes pasos?`;
 
-			// Redirigimos al usuario a la página de pago de Mercado Pago.
-			const { redirectUrl } = response.data;
-			window.location.href = redirectUrl;
-		} catch (error) {
-			console.error("Error al crear la preferencia:", error);
-			alert("Error al generar el link de pago. Intenta de nuevo.");
-			setIsLoading(false); // Detenemos la carga si hay un error.
-		}
+		// 2. Codificamos el mensaje para que sea seguro en una URL.
+		const encodedMessage = encodeURIComponent(message);
+
+		// 3. Construimos la URL completa de la API de WhatsApp.
+		const whatsappUrl = `https://api.whatsapp.com/send/?phone=56939363916&text=${encodedMessage}`;
+
+		// 4. Abrimos WhatsApp en una nueva pestaña.
+		// Usamos un pequeño delay para que el usuario vea el cambio en el botón.
+		setTimeout(() => {
+			window.open(whatsappUrl, "_blank");
+			setIsLoading(false);
+			setSelectedPlan(null);
+		}, 300);
 	};
 
 	// Datos de los planes de servicio
@@ -783,7 +775,7 @@ const App = () => {
 											} disabled:opacity-50 disabled:cursor-wait`}
 										>
 											{isLoading && selectedPlan === plan.name
-												? "Redirigiendo..."
+												? "Abriendo..."
 												: "CONTRATAR AHORA"}
 										</motion.button>
 									</div>
