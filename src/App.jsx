@@ -119,7 +119,7 @@ const App = () => {
 	};
 
 	/**
-	 * Abre un chat de WhatsApp con la información del plan seleccionado.
+	 * Abre un chat de WhatsApp y envía un evento de conversión a Google Ads.
 	 */
 	const handleBuy = (plan) => {
 		setSelectedPlan(plan.name);
@@ -134,13 +134,28 @@ const App = () => {
 		// 3. Construimos la URL completa de la API de WhatsApp.
 		const whatsappUrl = `https://api.whatsapp.com/send/?phone=56939363916&text=${encodedMessage}`;
 
-		// 4. Abrimos WhatsApp en una nueva pestaña.
-		// Usamos un pequeño delay para que el usuario vea el cambio en el botón.
-		setTimeout(() => {
+		// --- ¡LÓGICA DE CONVERSIÓN DE GOOGLE ADS ACTUALIZADA! ---
+		// Verifica si la función gtag está disponible.
+		if (typeof gtag === "function") {
+			console.log("Enviando evento de conversión a Google Ads...");
+			gtag("event", "conversion", {
+				send_to: "AW-980744893/m9_NCPGupb0aEL3109MD",
+				event_callback: () => {
+					// Esta función se ejecuta DESPUÉS de que el evento se ha enviado.
+					console.log("Callback de conversión ejecutado. Abriendo WhatsApp.");
+					window.open(whatsappUrl, "_blank");
+					setIsLoading(false);
+					setSelectedPlan(null);
+				},
+			});
+		} else {
+			// Si gtag no está disponible (por un bloqueador de anuncios, etc.),
+			// simplemente abre WhatsApp para no interrumpir al usuario.
+			console.log("gtag no encontrado. Abriendo WhatsApp directamente.");
 			window.open(whatsappUrl, "_blank");
 			setIsLoading(false);
 			setSelectedPlan(null);
-		}, 300);
+		}
 	};
 
 	// Datos de los planes de servicio
