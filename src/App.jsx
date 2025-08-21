@@ -51,6 +51,28 @@ const App = () => {
 	});
 	const [formStatus, setFormStatus] = useState("idle"); // 'idle', 'sending'
 
+	/**
+	 * Función reutilizable para registrar la conversión y redirigir.
+	 * @param {string} url - La URL de destino (en este caso, WhatsApp).
+	 * @param {Function} [callback] - Una función opcional que se ejecuta después de enviar el evento.
+	 */
+	const gtag_report_conversion = (url, callback) => {
+		if (typeof gtag === "function") {
+			gtag("event", "conversion", {
+				send_to: "AW-980744893/m9_NCPGupb0aEL3109MD",
+				event_callback: () => {
+					if (callback) callback();
+					if (url) window.open(url, "_blank");
+				},
+			});
+		} else {
+			// Fallback si gtag no está disponible
+			if (callback) callback();
+			if (url) window.open(url, "_blank");
+		}
+		return false; // Previene la acción por defecto si se usa en un enlace
+	};
+
 	const handleContactFormChange = (e) => {
 		const { name, value } = e.target;
 		setContactFormData((prev) => ({ ...prev, [name]: value }));
@@ -71,11 +93,10 @@ const App = () => {
 		const encodedMessage = encodeURIComponent(message);
 		const whatsappUrl = `https://api.whatsapp.com/send/?phone=56939363916&text=${encodedMessage}`;
 
-		setTimeout(() => {
-			window.open(whatsappUrl, "_blank");
+		gtag_report_conversion(whatsappUrl, () => {
 			setContactFormData({ name: "", website: "", phone: "", email: "" });
 			setFormStatus("idle");
-		}, 500);
+		});
 	};
 
 	// Lógica para el popup de descuento
@@ -119,43 +140,20 @@ const App = () => {
 	};
 
 	/**
-	 * Abre un chat de WhatsApp y envía un evento de conversión a Google Ads.
+	 * Maneja el clic en los botones de "CONTRATAR AHORA".
 	 */
 	const handleBuy = (plan) => {
 		setSelectedPlan(plan.name);
 		setIsLoading(true);
 
-		// 1. Creamos el mensaje pre-llenado con los detalles del plan.
 		const message = `¡Hola! Estoy interesado/a en contratar el *${plan.name}*.\n\nPrecio de oferta: ${plan.currentPrice} ${plan.period}.\n\n¿Podrían darme más información sobre los siguientes pasos?`;
-
-		// 2. Codificamos el mensaje para que sea seguro en una URL.
 		const encodedMessage = encodeURIComponent(message);
-
-		// 3. Construimos la URL completa de la API de WhatsApp.
 		const whatsappUrl = `https://api.whatsapp.com/send/?phone=56939363916&text=${encodedMessage}`;
 
-		// --- ¡LÓGICA DE CONVERSIÓN DE GOOGLE ADS ACTUALIZADA! ---
-		// Verifica si la función gtag está disponible.
-		if (typeof gtag === "function") {
-			console.log("Enviando evento de conversión a Google Ads...");
-			gtag("event", "conversion", {
-				send_to: "AW-980744893/m9_NCPGupb0aEL3109MD",
-				event_callback: () => {
-					// Esta función se ejecuta DESPUÉS de que el evento se ha enviado.
-					console.log("Callback de conversión ejecutado. Abriendo WhatsApp.");
-					window.open(whatsappUrl, "_blank");
-					setIsLoading(false);
-					setSelectedPlan(null);
-				},
-			});
-		} else {
-			// Si gtag no está disponible (por un bloqueador de anuncios, etc.),
-			// simplemente abre WhatsApp para no interrumpir al usuario.
-			console.log("gtag no encontrado. Abriendo WhatsApp directamente.");
-			window.open(whatsappUrl, "_blank");
+		gtag_report_conversion(whatsappUrl, () => {
 			setIsLoading(false);
 			setSelectedPlan(null);
-		}
+		});
 	};
 
 	// Datos de los planes de servicio
@@ -298,6 +296,10 @@ const App = () => {
 							</motion.button>
 							<motion.a
 								href="https://api.whatsapp.com/send/?phone=56939363916&text=Hola, me gustaría agendar una consulta gratuita para mi negocio. ¿Podrían ayudarme?"
+								onClick={(e) => {
+									e.preventDefault();
+									gtag_report_conversion(e.currentTarget.href);
+								}}
 								target="_blank"
 								rel="noopener noreferrer"
 								whileHover={{ scale: 1.05 }}
@@ -347,6 +349,10 @@ const App = () => {
 								<div className="flex flex-col sm:flex-row gap-4">
 									<motion.a
 										href="https://api.whatsapp.com/send/?phone=56939363916&text=Hola, quiero comenzar con Google Ads para mi negocio. ¿Podrían ayudarme?"
+										onClick={(e) => {
+											e.preventDefault();
+											gtag_report_conversion(e.currentTarget.href);
+										}}
 										target="_blank"
 										rel="noopener noreferrer"
 										whileHover={{ scale: 1.05 }}
@@ -949,7 +955,11 @@ const App = () => {
 										hablar con un experto.
 									</p>
 									<motion.a
-										href="https://api.whatsapp.com/send/?phone=939363916&text=Hola, me gustaría hablar con un experto."
+										href="https://api.whatsapp.com/send/?phone=56939363916&text=Hola, me gustaría hablar con un experto."
+										onClick={(e) => {
+											e.preventDefault();
+											gtag_report_conversion(e.currentTarget.href);
+										}}
 										target="_blank"
 										rel="noopener noreferrer"
 										whileHover={{ scale: 1.05 }}
@@ -1056,7 +1066,7 @@ const App = () => {
 											{formStatus === "sending" ? (
 												<>
 													<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-													<span>Redirigiendo...</span>
+													<span>Enviando...</span>
 												</>
 											) : (
 												<>
