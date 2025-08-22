@@ -1,19 +1,6 @@
 import React from "react";
 
 const Footer = () => {
-	const scrollToSection = (sectionId) => {
-		if (window.location.pathname !== "/") {
-			// Si no estamos en la página principal, navegar primero
-			window.location.href = `/#${sectionId}`;
-		} else {
-			// Si estamos en la página principal, hacer scroll
-			const element = document.getElementById(sectionId);
-			if (element) {
-				element.scrollIntoView({ behavior: "smooth" });
-			}
-		}
-	};
-
 	return (
 		<footer className="bg-gray-900 text-white py-16">
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -75,36 +62,36 @@ const Footer = () => {
 						<h3 className="text-lg font-semibold mb-4">Servicios</h3>
 						<ul className="space-y-2 text-gray-400">
 							<li>
-								<button
-									onClick={() => scrollToSection("servicios")}
+								<a
+									href="#servicios"
 									className="hover:text-white transition-colors"
 								>
 									Campañas Google Ads
-								</button>
+								</a>
 							</li>
 							<li>
-								<button
-									onClick={() => scrollToSection("servicios")}
+								<a
+									href="#servicios"
 									className="hover:text-white transition-colors"
 								>
 									Landing Pages
-								</button>
+								</a>
 							</li>
 							<li>
-								<Link
-									to="/automatizaciones"
-									className="hover:text-white transition-colors"
-								>
-									Automatizaciones n8n
-								</Link>
-							</li>
-							<li>
-								<button
-									onClick={() => scrollToSection("servicios")}
+								<a
+									href="#servicios"
 									className="hover:text-white transition-colors"
 								>
 									Análisis y Reportes
-								</button>
+								</a>
+							</li>
+							<li>
+								<a
+									href="#servicios"
+									className="hover:text-white transition-colors"
+								>
+									Consultoría Digital
+								</a>
 							</li>
 						</ul>
 					</div>
@@ -112,20 +99,17 @@ const Footer = () => {
 						<h3 className="text-lg font-semibold mb-4">Empresa</h3>
 						<ul className="space-y-2 text-gray-400">
 							<li>
-								<button
-									onClick={() => scrollToSection("nosotros")}
+								<a
+									href="#nosotros"
 									className="hover:text-white transition-colors"
 								>
 									Sobre Nosotros
-								</button>
+								</a>
 							</li>
 							<li>
-								<button
-									onClick={() => scrollToSection("casos")}
-									className="hover:text-white transition-colors"
-								>
+								<a href="#casos" className="hover:text-white transition-colors">
 									Casos de Éxito
-								</button>
+								</a>
 							</li>
 							<li>
 								<a href="#" className="hover:text-white transition-colors">
@@ -133,12 +117,12 @@ const Footer = () => {
 								</a>
 							</li>
 							<li>
-								<button
-									onClick={() => scrollToSection("contacto")}
+								<a
+									href="#contacto"
 									className="hover:text-white transition-colors"
 								>
 									Contacto
-								</button>
+								</a>
 							</li>
 						</ul>
 					</div>

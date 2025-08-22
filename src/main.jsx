@@ -3,11 +3,12 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import App from "./App.jsx";
-import "./App.css"; // <-- CORRECCIÓN AQUÍ
+import "./App.css";
 
-// Importamos las nuevas páginas
+// Importamos las páginas existentes y la nueva
 import PagoExitoso from "./pages/PagoExitoso.jsx";
 import PagoFallido from "./pages/PagoFallido.jsx";
+import EcommercePage from "./pages/EcommercePage.jsx"; // <-- IMPORTAMOS LA NUEVA PÁGINA
 
 ReactDOM.createRoot(document.getElementById("root")).render(
 	<React.StrictMode>
@@ -15,6 +16,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 			<Routes>
 				{/* Ruta para la página principal */}
 				<Route path="/" element={<App />} />
+
+				{/* NUEVA RUTA para la página de E-commerce */}
+				<Route path="/ecommerce" element={<EcommercePage />} />
 
 				{/* Rutas para las páginas de estado del pago */}
 				<Route path="/pago-exitoso" element={<PagoExitoso />} />
