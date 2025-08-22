@@ -31,6 +31,9 @@ import Chatbot from "./Chatbot.jsx";
 import FloatingHelpWidget from "./FloatingHelpWidget.jsx";
 import GradientText from "./GradientText.jsx";
 
+// Importar el nuevo componente de marquesina
+import ClientMarquee from "./components/ClientMarquee.jsx";
+
 // Importar imágenes
 import dashboardHero from "./assets/dashboard-hero.png";
 
@@ -468,6 +471,10 @@ const App = () => {
 						</div>
 					</div>
 				</section>
+
+				{/* ========= INICIO DE LA NUEVA SECCIÓN DE MARQUESINA ========= */}
+				<ClientMarquee />
+				{/* ========= FIN DE LA NUEVA SECCIÓN DE MARQUESINA ========= */}
 
 				<section className="py-20 bg-gradient-to-r from-blue-700 to-indigo-800">
 					<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
