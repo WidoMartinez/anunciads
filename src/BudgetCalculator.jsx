@@ -81,18 +81,15 @@ const BudgetCalculator = ({ onClose }) => {
 	});
 	const [currentStep, setCurrentStep] = useState(0);
 	const [error, setError] = useState("");
-	// Nuevo estado para manejar la vista de éxito
 	const [isSubmitted, setIsSubmitted] = useState(false);
 
-	// Efecto para cerrar el modal automáticamente después de mostrar el mensaje de éxito
 	useEffect(() => {
 		if (isSubmitted) {
 			const timer = setTimeout(() => {
 				if (onClose) {
 					onClose();
 				}
-			}, 3500); // Cierra el modal después de 3.5 segundos
-
+			}, 3500);
 			return () => clearTimeout(timer);
 		}
 	}, [isSubmitted, onClose]);
@@ -176,7 +173,6 @@ const BudgetCalculator = ({ onClose }) => {
 		const whatsappUrl = `https://api.whatsapp.com/send/?phone=${MI_NUMERO_WHATSAPP}&text=${encodedMessage}`;
 		window.open(whatsappUrl, "_blank");
 
-		// Cambia el estado para mostrar el mensaje de éxito
 		setIsSubmitted(true);
 	};
 
@@ -191,7 +187,6 @@ const BudgetCalculator = ({ onClose }) => {
 		}),
 	};
 
-	// Si el formulario fue enviado, muestra el mensaje de éxito
 	if (isSubmitted) {
 		return (
 			<div className="p-4 md:p-8 w-full h-full bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center text-center">
@@ -214,7 +209,8 @@ const BudgetCalculator = ({ onClose }) => {
 	}
 
 	return (
-		<div className="p-4 md:p-8 w-full bg-gray-50 dark:bg-gray-900">
+		// SE RESTAURÓ EL COLOR DE FONDO Y SE AÑADIÓ h-full
+		<div className="p-4 md:p-8 w-full h-full bg-gray-50 dark:bg-gray-900">
 			<div className="text-center mb-8">
 				<h2 className="text-3xl font-bold text-gray-800 dark:text-white">
 					Calcula tu Presupuesto
