@@ -12,7 +12,7 @@ import {
 	Phone,
 	AlertTriangle,
 } from "lucide-react";
-import axios from "axios"; // Asegúrate de tener axios importado
+import axios from "axios";
 
 const questions = [
 	{
@@ -163,28 +163,25 @@ const BudgetCalculator = ({ onClose }) => {
 		setFormStatus("sending");
 
 		const apiUrl = "https://anunciads.onrender.com";
-		const websiteInfo =
-			formData.hasWebsite === "yes"
-				? formData.website
-				: "No tiene, posible desarrollo.";
-		const goalsString = formData.goals.join(", ");
 
-		// Creamos el objeto con TODOS los datos a enviar
+		// Preparamos el objeto con TODOS los datos a enviar
 		const submissionData = {
 			name: formData.name,
 			email: formData.email,
 			phone: formData.phone,
-			website: websiteInfo,
+			website:
+				formData.hasWebsite === "yes"
+					? formData.website
+					: "No tiene, posible desarrollo.",
 			source: "Calculadora de Presupuesto", // Identificador del formulario
-			// Creamos un cuerpo de mensaje con la información extra
-			message: `
-				Presupuesto Mensual Seleccionado: ${formData.monthlyBudget}
-				Objetivos Principales: ${goalsString}
-			`,
+			// --- ENVIAMOS LOS DATOS ADICIONALES DE FORMA ESTRUCTURADA ---
+			calculatorData: {
+				budget: formData.monthlyBudget,
+				goals: formData.goals.join(", "),
+			},
 		};
 
 		try {
-			// Enviamos los datos al servidor
 			await axios.post(`${apiUrl}/send-email`, submissionData);
 			gtag_form_submission();
 			setIsSubmitted(true);
@@ -196,6 +193,7 @@ const BudgetCalculator = ({ onClose }) => {
 		}
 	};
 
+	// ... (el resto del JSX no necesita cambios)
 	const currentQuestion = questions[currentStep];
 	const variants = {
 		enter: (direction) => ({ x: direction > 0 ? 300 : -300, opacity: 0 }),
