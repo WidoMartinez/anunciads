@@ -1,8 +1,18 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Send } from "lucide-react";
+import { ArrowRight, Send, User, Mail, Phone, Globe } from "lucide-react"; // Importamos nuevos iconos
 import GradientText from "./GradientText";
 import axios from "axios";
+
+// Componente para el input con icono
+const FormInput = ({ icon: Icon, children }) => (
+	<div className="relative">
+		<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+			<Icon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+		</div>
+		{children}
+	</div>
+);
 
 const Hero = () => {
 	const [contactFormData, setContactFormData] = useState({
@@ -11,7 +21,7 @@ const Hero = () => {
 		phone: "",
 		email: "",
 	});
-	const [formStatus, setFormStatus] = useState("idle");
+	const [formStatus, setFormStatus] = useState("idle"); // idle, sending, success, error
 
 	const gtag_report_conversion = (url, callback) => {
 		if (typeof window.gtag === "function") {
@@ -29,6 +39,14 @@ const Hero = () => {
 		return false;
 	};
 
+	const gtag_form_submission = () => {
+		if (typeof window.gtag === "function") {
+			window.gtag("event", "conversion", {
+				send_to: "AW-980744893/w6nVCI61hb4aEL3109MD",
+			});
+		}
+	};
+
 	const handleContactFormChange = (e) => {
 		const { name, value } = e.target;
 		setContactFormData((prev) => ({ ...prev, [name]: value }));
@@ -38,9 +56,7 @@ const Hero = () => {
 		e.preventDefault();
 		setFormStatus("sending");
 
-		// --- CORRECCIÓN ---
-		// Aseguramos que la URL de la API se obtenga de las variables de entorno de Vite.
-		const apiUrl = import.meta.env.VITE_API_URL;
+		const apiUrl = "https://anunciads.onrender.com";
 
 		try {
 			const response = await axios.post(
@@ -50,8 +66,8 @@ const Hero = () => {
 
 			if (response.status === 200) {
 				setFormStatus("success");
-				setContactFormData({ name: "", website: "", phone: "", email: "" });
-				gtag_report_conversion(null, null); // Reporta la conversión
+				setContactFormData({ name: "", website: "", phone: "", email: "" }); // Limpiamos el formulario
+				gtag_form_submission();
 			}
 		} catch (error) {
 			console.error("Error al enviar el formulario:", error);
@@ -120,103 +136,107 @@ const Hero = () => {
 						<h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
 							Envíanos un Mensaje
 						</h3>
-						<form onSubmit={handleContactFormSubmit} className="space-y-6">
-							<div>
-								<label
-									htmlFor="name"
-									className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-								>
-									Nombre
-								</label>
-								<input
-									type="text"
-									name="name"
-									id="name"
-									required
-									value={contactFormData.name}
-									onChange={handleContactFormChange}
-									className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-									placeholder="Tu nombre completo"
-								/>
-							</div>
-							<div>
-								<label
-									htmlFor="website"
-									className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-								>
-									Página Web
-								</label>
-								<input
-									type="url"
-									name="website"
-									id="website"
-									required
-									value={contactFormData.website}
-									onChange={handleContactFormChange}
-									className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-									placeholder="https://www.tuempresa.cl"
-								/>
-							</div>
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								<div>
-									<label
-										htmlFor="phone"
-										className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-									>
-										Fono de Contacto
-									</label>
+						{formStatus === "success" ? (
+							<motion.div
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								className="flex flex-col items-center justify-center h-full min-h-[300px] text-center"
+							>
+								<CheckCircle className="h-20 w-20 text-green-500 mb-4" />
+								<p className="text-xl font-semibold text-gray-800 dark:text-white">
+									¡Mensaje enviado con éxito!
+								</p>
+								<p className="text-gray-600 dark:text-gray-400 mt-2">
+									Nos pondremos en contacto contigo a la brevedad.
+								</p>
+							</motion.div>
+						) : (
+							<form onSubmit={handleContactFormSubmit} className="space-y-6">
+								<FormInput icon={User}>
 									<input
-										type="tel"
-										name="phone"
-										id="phone"
+										type="text"
+										name="name"
+										id="name"
 										required
-										value={contactFormData.phone}
+										value={contactFormData.name}
 										onChange={handleContactFormChange}
-										className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-										placeholder="+56 9 3936 3916"
+										className="w-full pl-10 pr-3 py-3 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+										placeholder="Tu nombre completo"
+										disabled={formStatus === "sending"}
 									/>
+								</FormInput>
+
+								<FormInput icon={Globe}>
+									<input
+										type="url"
+										name="website"
+										id="website"
+										required
+										value={contactFormData.website}
+										onChange={handleContactFormChange}
+										className="w-full pl-10 pr-3 py-3 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+										placeholder="https://www.tuempresa.cl"
+										disabled={formStatus === "sending"}
+									/>
+								</FormInput>
+
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+									<FormInput icon={Phone}>
+										<input
+											type="tel"
+											name="phone"
+											id="phone"
+											required
+											value={contactFormData.phone}
+											onChange={handleContactFormChange}
+											className="w-full pl-10 pr-3 py-3 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+											placeholder="+56 9 3936 3916"
+											disabled={formStatus === "sending"}
+										/>
+									</FormInput>
+									<FormInput icon={Mail}>
+										<input
+											type="email"
+											id="email"
+											name="email"
+											required
+											value={contactFormData.email}
+											onChange={handleContactFormChange}
+											className="w-full pl-10 pr-3 py-3 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+											placeholder="tu@correo.cl"
+											disabled={formStatus === "sending"}
+										/>
+									</FormInput>
 								</div>
 								<div>
-									<label
-										htmlFor="email"
-										className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+									<motion.button
+										type="submit"
+										whileHover={{ scale: 1.05 }}
+										whileTap={{ scale: 0.95 }}
+										disabled={formStatus === "sending"}
+										className="w-full bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors flex items-center justify-center disabled:opacity-70"
 									>
-										Correo Electrónico
-									</label>
-									<input
-										type="email"
-										id="email"
-										name="email"
-										required
-										value={contactFormData.email}
-										onChange={handleContactFormChange}
-										className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-										placeholder="tu@correo.com"
-									/>
+										{formStatus === "sending" ? (
+											<>
+												<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+												<span>Enviando...</span>
+											</>
+										) : (
+											<>
+												Enviar Mensaje
+												<Send className="ml-2 h-5 w-5" />
+											</>
+										)}
+									</motion.button>
 								</div>
-							</div>
-							<div>
-								<motion.button
-									type="submit"
-									whileHover={{ scale: 1.05 }}
-									whileTap={{ scale: 0.95 }}
-									disabled={formStatus === "sending"}
-									className="w-full bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors flex items-center justify-center disabled:opacity-70"
-								>
-									{formStatus === "sending" ? (
-										<>
-											<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-											<span>Enviando...</span>
-										</>
-									) : (
-										<>
-											Enviar Mensaje
-											<Send className="ml-2 h-5 w-5" />
-										</>
-									)}
-								</motion.button>
-							</div>
-						</form>
+								{formStatus === "error" && (
+									<p className="text-sm text-red-500 text-center mt-2">
+										Hubo un error al enviar tu mensaje. Por favor, intenta de
+										nuevo.
+									</p>
+								)}
+							</form>
+						)}
 					</motion.div>
 				</div>
 			</div>

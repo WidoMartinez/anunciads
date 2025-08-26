@@ -12,8 +12,7 @@ import {
 	Phone,
 	AlertTriangle,
 } from "lucide-react";
-
-const MI_NUMERO_WHATSAPP = "56939363916";
+import axios from "axios"; // 1. Importamos axios
 
 const questions = [
 	{
@@ -82,19 +81,27 @@ const BudgetCalculator = ({ onClose }) => {
 	const [currentStep, setCurrentStep] = useState(0);
 	const [error, setError] = useState("");
 	const [isSubmitted, setIsSubmitted] = useState(false);
+	const [formStatus, setFormStatus] = useState("idle"); // Estado para el envío
+
+	const gtag_form_submission = () => {
+		if (typeof window.gtag === "function") {
+			window.gtag("event", "conversion", {
+				send_to: "AW-980744893/w6nVCI61hb4aEL3109MD",
+			});
+		}
+	};
 
 	useEffect(() => {
 		if (isSubmitted) {
 			const timer = setTimeout(() => {
-				if (onClose) {
-					onClose();
-				}
+				if (onClose) onClose();
 			}, 3500);
 			return () => clearTimeout(timer);
 		}
 	}, [isSubmitted, onClose]);
 
 	const handleNext = () => {
+		// ... (esta función no necesita cambios)
 		const currentFieldId = questions[currentStep].id;
 		if (currentFieldId === "website") {
 			if (!formData.hasWebsite) {
@@ -118,6 +125,7 @@ const BudgetCalculator = ({ onClose }) => {
 	};
 
 	const handleBack = () => {
+		// ... (esta función no necesita cambios)
 		setError("");
 		if (currentStep > 0) {
 			setCurrentStep(currentStep - 1);
@@ -125,6 +133,7 @@ const BudgetCalculator = ({ onClose }) => {
 	};
 
 	const handleChange = (e) => {
+		// ... (esta función no necesita cambios)
 		setError("");
 		const { id, value, type, checked, name } = e.target;
 		if (name === "hasWebsite") {
@@ -147,35 +156,47 @@ const BudgetCalculator = ({ onClose }) => {
 		}
 	};
 
-	const handleSubmit = () => {
+	// --- 2. MODIFICAMOS LA FUNCIÓN DE ENVÍO ---
+	const handleSubmit = async () => {
 		if (formData.goals.length === 0) {
 			setError("Por favor, selecciona al menos un objetivo.");
 			return;
 		}
 		setError("");
+		setFormStatus("sending"); // Cambiamos el estado a "enviando"
+
+		const apiUrl = "https://anunciads.onrender.com";
 		const websiteInfo =
 			formData.hasWebsite === "yes"
 				? formData.website
 				: "No tiene, posible desarrollo.";
 		const goalsString = formData.goals.join(", ");
 
-		const whatsappMessage = `
-¡Hola! Quiero solicitar un presupuesto con los siguientes datos:
-*Nombre:* ${formData.name}
-*Email:* ${formData.email}
-*Teléfono:* ${formData.phone}
-*Página Web:* ${websiteInfo}
-*Presupuesto Mensual:* ${formData.monthlyBudget}
-*Objetivos:* ${goalsString}
-        `.trim();
+		const submissionData = {
+			name: formData.name,
+			email: formData.email,
+			phone: formData.phone,
+			website: websiteInfo,
+			// Agregamos los datos adicionales al cuerpo del correo
+			message: `
+				Presupuesto Mensual: ${formData.monthlyBudget}
+				Objetivos: ${goalsString}
+			`,
+		};
 
-		const encodedMessage = encodeURIComponent(whatsappMessage);
-		const whatsappUrl = `https://api.whatsapp.com/send/?phone=${MI_NUMERO_WHATSAPP}&text=${encodedMessage}`;
-		window.open(whatsappUrl, "_blank");
-
-		setIsSubmitted(true);
+		try {
+			await axios.post(`${apiUrl}/send-email`, submissionData);
+			gtag_form_submission(); // Registramos la conversión
+			setIsSubmitted(true); // Mostramos el mensaje de éxito
+			setFormStatus("success");
+		} catch (error) {
+			console.error("Error al enviar el formulario de la calculadora:", error);
+			setError("Hubo un error al enviar tus datos. Intenta de nuevo.");
+			setFormStatus("error");
+		}
 	};
 
+	// ... (el resto del JSX se mantiene casi igual, solo actualizaremos el botón final)
 	const currentQuestion = questions[currentStep];
 	const variants = {
 		enter: (direction) => ({ x: direction > 0 ? 300 : -300, opacity: 0 }),
@@ -197,7 +218,7 @@ const BudgetCalculator = ({ onClose }) => {
 				>
 					<CheckCircle className="h-20 w-20 text-green-500 mx-auto mb-6" />
 					<h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
-						¡Datos Enviados!
+						¡Información Recibida!
 					</h2>
 					<p className="text-lg text-gray-600 dark:text-gray-400 max-w-md mx-auto">
 						Gracias por completar el formulario. Pronto nos comunicaremos
@@ -209,7 +230,6 @@ const BudgetCalculator = ({ onClose }) => {
 	}
 
 	return (
-		// SE RESTAURÓ EL COLOR DE FONDO Y SE AÑADIÓ h-full
 		<div className="p-4 md:p-8 w-full h-full bg-gray-50 dark:bg-gray-900">
 			<div className="text-center mb-8">
 				<h2 className="text-3xl font-bold text-gray-800 dark:text-white">
@@ -426,15 +446,26 @@ const BudgetCalculator = ({ onClose }) => {
 							Siguiente <ArrowRight className="ml-2 h-5 w-5" />
 						</motion.button>
 					) : (
+						// --- 3. ACTUALIZAMOS EL BOTÓN FINAL ---
 						<motion.button
 							type="button"
 							onClick={handleSubmit}
+							disabled={formStatus === "sending"}
 							whileHover={{ scale: 1.05 }}
 							whileTap={{ scale: 0.95 }}
-							className="flex items-center justify-center w-52 bg-green-500 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg hover:bg-green-600"
+							className="flex items-center justify-center w-52 bg-green-500 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg hover:bg-green-600 disabled:opacity-70"
 						>
-							<Send className="mr-2 h-5 w-5" />
-							Enviar por WhatsApp
+							{formStatus === "sending" ? (
+								<>
+									<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+									<span>Enviando...</span>
+								</>
+							) : (
+								<>
+									<Send className="mr-2 h-5 w-5" />
+									Solicitar Presupuesto
+								</>
+							)}
 						</motion.button>
 					)}
 				</div>

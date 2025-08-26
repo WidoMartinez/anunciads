@@ -12,8 +12,18 @@ import {
 	Tag,
 	PenSquare,
 } from "lucide-react";
+import axios from "axios"; // 1. Importamos axios
 
-// Componente del Formulario Interno con la lógica de WhatsApp
+// --- FUNCIÓN DE CONVERSIÓN DE GOOGLE ADS ---
+const gtag_form_submission = () => {
+	if (typeof window.gtag === "function") {
+		window.gtag("event", "conversion", {
+			send_to: "AW-980744893/w6nVCI61hb4aEL3109MD",
+		});
+	}
+};
+
+// Componente del Formulario Interno (MODIFICADO)
 const LeadCaptureForm = ({ type = "contact", onClose }) => {
 	const [formData, setFormData] = useState({
 		name: "",
@@ -23,38 +33,45 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 		message: "",
 		source: type,
 	});
-	const [isLoading, setIsLoading] = useState(false);
+	const [formStatus, setFormStatus] = useState("idle"); // idle, sending, success, error
 
 	const handleInputChange = (e) => {
 		const { name, value } = e.target;
 		setFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
-	const handleSubmit = (e) => {
+	// --- LÓGICA DE ENVÍO MODIFICADA ---
+	const handleSubmit = async (e) => {
 		e.preventDefault();
-		setIsLoading(true);
+		setFormStatus("sending");
 
 		const config = getFormConfig();
-		let messageBody = `
-¡Hola! Quisiera solicitar ayuda desde el widget de contacto.
+		const apiUrl = "https://anunciads.onrender.com";
 
-*Tipo de Solicitud:* ${config.title}
-*Nombre:* ${formData.name}
-*Email:* ${formData.email}
-    `.trim();
+		// Preparamos los datos para enviar al backend
+		const submissionData = {
+			name: formData.name,
+			email: formData.email,
+			phone: formData.phone,
+			website: "No especificado (Widget)", // Campo requerido por el backend
+			message: `
+				Tipo de Solicitud: ${config.title}
+				Interés Principal: ${formData.interest || "No especificado"}
+				Mensaje Adicional: ${formData.message || "Ninguno"}
+			`,
+		};
 
-		if (formData.phone) messageBody += `\n*Teléfono:* ${formData.phone}`;
-		if (formData.interest) messageBody += `\n*Interés:* ${formData.interest}`;
-		if (formData.message) messageBody += `\n*Mensaje:* ${formData.message}`;
-
-		const encodedMessage = encodeURIComponent(messageBody);
-		const whatsappUrl = `https://api.whatsapp.com/send/?phone=56939363916&text=${encodedMessage}`;
-
-		setTimeout(() => {
-			window.open(whatsappUrl, "_blank");
-			setIsLoading(false);
-			onClose && onClose();
-		}, 500);
+		try {
+			await axios.post(`${apiUrl}/send-email`, submissionData);
+			gtag_form_submission(); // Registramos la conversión
+			setFormStatus("success");
+			setTimeout(() => {
+				onClose && onClose();
+			}, 3000); // Cerramos el modal después de 3 segundos
+		} catch (error) {
+			console.error("Error al enviar formulario del widget:", error);
+			setFormStatus("error");
+		}
 	};
 
 	const getFormConfig = () => {
@@ -64,7 +81,7 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 					title: "Solicitar Cotización",
 					description:
 						"Detalla tu proyecto y te enviaremos una propuesta a medida.",
-					buttonText: "Contactar por WhatsApp",
+					buttonText: "Enviar Solicitud",
 					icon: <FileText className="w-5 h-5 text-blue-600" />,
 					fields: ["name", "email", "phone", "interest", "message"],
 				};
@@ -73,7 +90,7 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 					title: "Agendar una Reunión",
 					description:
 						"Conversemos 15 min. sobre cómo podemos potenciar tu negocio.",
-					buttonText: "Agendar por WhatsApp",
+					buttonText: "Enviar Solicitud",
 					icon: <Calendar className="w-5 h-5 text-blue-600" />,
 					fields: ["name", "email", "phone", "interest"],
 				};
@@ -81,7 +98,7 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 				return {
 					title: "Hablar con un Especialista",
 					description: "Resuelve tus dudas sobre Google Ads con un experto.",
-					buttonText: "Contactar por WhatsApp",
+					buttonText: "Enviar Mensaje",
 					icon: <MessageCircle className="w-5 h-5 text-blue-600" />,
 					fields: ["name", "email", "phone", "message"],
 				};
@@ -98,6 +115,22 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 			{children}
 		</div>
 	);
+
+	// Si el envío fue exitoso, mostramos un mensaje de confirmación
+	if (formStatus === "success") {
+		return (
+			<div className="w-full max-w-md mx-auto bg-white dark:bg-slate-800 rounded-xl shadow-2xl border dark:border-slate-700 p-8 text-center">
+				<CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+				<h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+					¡Enviado!
+				</h3>
+				<p className="text-slate-500 dark:text-slate-400 mt-2">
+					Hemos recibido tu solicitud. Nos pondremos en contacto contigo a la
+					brevedad.
+				</p>
+			</div>
+		);
+	}
 
 	return (
 		<div className="w-full max-w-md mx-auto bg-white dark:bg-slate-800 rounded-xl shadow-2xl border dark:border-slate-700">
@@ -137,6 +170,7 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 								required
 								className="w-full pl-10 pr-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-slate-600"
 								placeholder="Nombre Completo"
+								disabled={formStatus === "sending"}
 							/>
 						</FormInput>
 					)}
@@ -150,6 +184,7 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 								required
 								className="w-full pl-10 pr-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-slate-600"
 								placeholder="Email"
+								disabled={formStatus === "sending"}
 							/>
 						</FormInput>
 					)}
@@ -162,6 +197,7 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 								onChange={handleInputChange}
 								className="w-full pl-10 pr-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-slate-600"
 								placeholder="Teléfono (Opcional)"
+								disabled={formStatus === "sending"}
 							/>
 						</FormInput>
 					)}
@@ -172,6 +208,7 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 								value={formData.interest}
 								onChange={handleInputChange}
 								className="w-full pl-10 pr-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-slate-600"
+								disabled={formStatus === "sending"}
 							>
 								<option value="">Interés principal...</option>
 								<option value="Campañas Google Ads">Campañas Google Ads</option>
@@ -194,15 +231,16 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 								rows={3}
 								className="w-full pl-10 pr-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-slate-600"
 								placeholder="Cuéntanos más sobre tu proyecto..."
+								disabled={formStatus === "sending"}
 							/>
 						</FormInput>
 					)}
 					<button
 						type="submit"
 						className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md disabled:opacity-50 transition-colors"
-						disabled={isLoading}
+						disabled={formStatus === "sending"}
 					>
-						{isLoading ? (
+						{formStatus === "sending" ? (
 							<>
 								<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
 								<span>Enviando...</span>
@@ -211,6 +249,11 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 							config.buttonText
 						)}
 					</button>
+					{formStatus === "error" && (
+						<p className="text-sm text-red-500 text-center mt-2">
+							Hubo un error al enviar. Por favor, inténtalo de nuevo.
+						</p>
+					)}
 				</form>
 			</div>
 		</div>
@@ -243,7 +286,6 @@ const FloatingHelpWidget = () => {
 	const [modalType, setModalType] = useState("advisor");
 
 	return (
-		// --- DIV ENVOLVENTE CON CLASES RESPONSIVAS ---
 		<div className="hidden lg:block">
 			<div className="fixed bottom-6 left-6 z-40">
 				<AnimatePresence>

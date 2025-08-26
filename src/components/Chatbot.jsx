@@ -10,8 +10,7 @@ import {
 	FileText,
 	Phone,
 } from "lucide-react";
-
-const MI_NUMERO_WHATSAPP = "56939363916";
+import axios from "axios";
 
 const initialMessage = {
 	id: 1,
@@ -50,6 +49,15 @@ const Chatbot = () => {
 	const [isTyping, setIsTyping] = useState(false);
 	const [showLeadForm, setShowLeadForm] = useState(false);
 	const messagesEndRef = useRef(null);
+
+	// --- 1. NUEVA FUNCIÓN DE CONVERSIÓN PARA FORMULARIOS ---
+	const gtag_form_submission = () => {
+		if (typeof window.gtag === "function") {
+			window.gtag("event", "conversion", {
+				send_to: "AW-980744893/w6nVCI61hb4aEL3109MD",
+			});
+		}
+	};
 
 	useEffect(() => {
 		if (!isOpen) {
@@ -229,30 +237,41 @@ const Chatbot = () => {
 		}
 	};
 
-	const handleLeadSubmit = async (leadData) => {
+	const handleLeadSubmit = async (leadData, setIsLoading) => {
+		setIsLoading(true);
 		setShowLeadForm(false);
 
-		const message = `
-¡Nuevo Lead desde el Chatbot de anunciAds!
+		const apiUrl = "https://anunciads.onrender.com";
 
-*Nombre:* ${leadData.name}
-*Email:* ${leadData.email}
-*Teléfono:* ${leadData.phone}
-    `.trim();
+		try {
+			await axios.post(`${apiUrl}/send-email`, {
+				...leadData,
+				source: "Chatbot",
+			});
 
-		const encodedMessage = encodeURIComponent(message);
-		const whatsappUrl = `https://api.whatsapp.com/send/?phone=${MI_NUMERO_WHATSAPP}&text=${encodedMessage}`;
+			// --- 2. LLAMAMOS A LA ETIQUETA DE CONVERSIÓN ---
+			gtag_form_submission();
 
-		window.open(whatsappUrl, "_blank");
-
-		await simulateTyping(500);
-
-		addMessage({
-			id: Date.now(),
-			type: "bot",
-			content: `¡Perfecto, ${leadData.name}! He abierto WhatsApp para que nos envíes tus datos. Mientras, ¿puedo ayudarte en algo más?`,
-			options: initialMessage.options,
-		});
+			await simulateTyping(500);
+			addMessage({
+				id: Date.now(),
+				type: "bot",
+				content: `¡Perfecto, ${leadData.name}! He recibido tus datos. Nos pondremos en contacto contigo a la brevedad. ¿Puedo ayudarte en algo más?`,
+				options: initialMessage.options,
+			});
+		} catch (error) {
+			console.error("Error al enviar el formulario del chatbot:", error);
+			await simulateTyping(500);
+			addMessage({
+				id: Date.now(),
+				type: "bot",
+				content:
+					"Lo siento, hubo un error al enviar tus datos. Por favor, intenta de nuevo o contáctanos a través de otro medio.",
+				options: initialMessage.options,
+			});
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	const LeadForm = () => {
@@ -260,11 +279,15 @@ const Chatbot = () => {
 			name: "",
 			email: "",
 			phone: "",
+			website: "",
 		});
+		const [isLoading, setIsLoading] = useState(false);
+
 		const handleSubmit = (e) => {
 			e.preventDefault();
-			handleLeadSubmit(formData);
+			handleLeadSubmit(formData, setIsLoading);
 		};
+
 		return (
 			<div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
 				<h4 className="font-semibold mb-3 text-gray-800 dark:text-white text-sm">
@@ -280,6 +303,7 @@ const Chatbot = () => {
 						}
 						className="w-full px-3 py-1.5 border rounded-md text-xs bg-white dark:bg-gray-800 dark:border-gray-700"
 						required
+						disabled={isLoading}
 					/>
 					<input
 						type="email"
@@ -290,6 +314,7 @@ const Chatbot = () => {
 						}
 						className="w-full px-3 py-1.5 border rounded-md text-xs bg-white dark:bg-gray-800 dark:border-gray-700"
 						required
+						disabled={isLoading}
 					/>
 					<input
 						type="tel"
@@ -300,12 +325,25 @@ const Chatbot = () => {
 						}
 						className="w-full px-3 py-1.5 border rounded-md text-xs bg-white dark:bg-gray-800 dark:border-gray-700"
 						required
+						disabled={isLoading}
+					/>
+					<input
+						type="url"
+						placeholder="Página Web (ej: https://...)"
+						value={formData.website}
+						onChange={(e) =>
+							setFormData((prev) => ({ ...prev, website: e.target.value }))
+						}
+						className="w-full px-3 py-1.5 border rounded-md text-xs bg-white dark:bg-gray-800 dark:border-gray-700"
+						required
+						disabled={isLoading}
 					/>
 					<button
 						type="submit"
-						className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 rounded-md"
+						className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 rounded-md transition-opacity disabled:opacity-70"
+						disabled={isLoading}
 					>
-						Enviar por WhatsApp
+						{isLoading ? "Enviando..." : "Enviar Datos"}
 					</button>
 				</form>
 			</div>
@@ -313,7 +351,6 @@ const Chatbot = () => {
 	};
 
 	return (
-		// --- DIV ENVOLVENTE CON CLASES RESPONSIVAS ---
 		<div className="hidden lg:block">
 			<motion.button
 				onClick={() => setIsOpen(!isOpen)}
