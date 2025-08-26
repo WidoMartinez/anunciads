@@ -26,11 +26,11 @@ const TestimonialSlider = ({ testimonials }) => {
 	};
 
 	return (
-		<div className="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 h-full">
+		<div className="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700">
 			<Slider {...settings}>
 				{testimonials.map((testimonial, index) => (
 					<div key={index} className="px-2">
-						<div className="flex flex-col h-full">
+						<div className="flex flex-col">
 							<div className="flex mb-4">
 								{[...Array(testimonial.rating)].map((_, i) => (
 									<Star

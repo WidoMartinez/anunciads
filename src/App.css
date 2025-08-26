@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* --- CLASE PARA FONDOS CON GRADIENTE ACTUALIZADA --- */
+@layer utilities {
+	.bg-animated-gradient {
+		@apply bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-800;
+		background-size: 200% auto;
+		animation: gradient-animation 4s ease infinite;
+	}
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -110,16 +119,7 @@
 	--sidebar-border: oklch(1 0 0 / 10%);
 	--sidebar-ring: oklch(0.556 0 0);
 }
-/*
-@layer base {
-	* {
-		@apply border-border outline-ring outline-opacity-50;
-	}
-	body {
-		@apply bg-background text-foreground;
-	}
-}
-*/
+
 /* --- Estilos para el Gradiente de Texto Animado --- */
 
 .animate-gradient {

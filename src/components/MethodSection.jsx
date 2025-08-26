@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import GradientText from "./GradientText"; // Importamos el componente de gradiente
 
 const steps = [
 	{
@@ -39,7 +40,7 @@ const MethodSection = () => {
 					className="text-center mb-16"
 				>
 					<h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-						Nuestro Método Probado
+						<GradientText>Nuestro Método Probado</GradientText>
 					</h2>
 					<p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
 						Un proceso estructurado que garantiza resultados consistentes y

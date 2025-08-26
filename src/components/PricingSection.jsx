@@ -13,6 +13,7 @@ import {
 	TrendingUp,
 	BarChart3,
 } from "lucide-react";
+import GradientText from "./GradientText";
 
 const PricingSection = () => {
 	const [isLoading, setIsLoading] = useState(false);
@@ -137,7 +138,7 @@ const PricingSection = () => {
 					className="text-center mb-16"
 				>
 					<h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-						Planes Pensados para Ti
+						<GradientText>Planes Pensados para Ti</GradientText>
 					</h2>
 					<p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
 						¡Oferta especial! 50% de descuento en todos nuestros planes durante
@@ -152,70 +153,78 @@ const PricingSection = () => {
 							initial={{ opacity: 0, y: 50 }}
 							whileInView={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.8, delay: index * 0.1 }}
-							className={`relative bg-white dark:bg-gray-800 border-2 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col ${
-								plan.popular
-									? "border-blue-500 dark:border-blue-500 scale-105 ring-2 ring-blue-500/50 shadow-2xl shadow-blue-500/40"
-									: "border-gray-200 dark:border-gray-700"
-							}`}
+							className={`
+                relative rounded-2xl p-0.5 transition-all duration-300
+                ${
+									plan.popular
+										? "bg-animated-gradient shadow-2xl shadow-blue-500/40"
+										: "bg-gray-200 dark:bg-gray-700"
+								}
+              `}
 						>
-							{plan.popular && (
-								<div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-									<span className="bg-blue-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg whitespace-nowrap">
-										🔥 MÁS POPULAR
-									</span>
-								</div>
-							)}
-							<div className="text-center flex-grow">
-								<h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-									{plan.name}
-								</h3>
-								<p className="text-gray-600 dark:text-gray-400 text-sm mb-4 h-12">
-									{plan.description}
-								</p>
-								<div className="mb-4">
-									<span className="text-gray-400 line-through text-lg">
-										{plan.originalPrice}
-									</span>
-									<div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-										{plan.currentPrice}
-										<span className="text-lg font-normal text-gray-600 dark:text-gray-400">
-											{plan.period}
+							<div className="relative bg-white dark:bg-gray-800 rounded-[14px] p-8 h-full flex flex-col">
+								{plan.popular && (
+									<div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+										<span className="bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg whitespace-nowrap">
+											🔥 MÁS POPULAR
 										</span>
 									</div>
-									<p className="text-base text-green-500 dark:text-green-400 font-bold">
-										50% OFF (primeros 2 meses)
+								)}
+								<div className="text-center flex-grow">
+									<h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+										{plan.name}
+									</h3>
+									<p className="text-gray-600 dark:text-gray-400 text-sm mb-4 h-12">
+										{plan.description}
 									</p>
-									<p className="text-xs text-gray-500 dark:text-gray-400 h-8 mt-2">
-										{plan.budget}
-									</p>
-								</div>
-								<ul className="text-left space-y-3">
-									{plan.features.map((feature, featureIndex) => (
-										<li key={featureIndex} className="flex items-start text-sm">
-											<feature.icon className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-											<span className="text-gray-700 dark:text-gray-300">
-												{feature.text}
+									<div className="mb-4">
+										<span className="text-gray-400 line-through text-lg">
+											{plan.originalPrice}
+										</span>
+										<div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+											{plan.currentPrice}
+											<span className="text-lg font-normal text-gray-600 dark:text-gray-400">
+												{plan.period}
 											</span>
-										</li>
-									))}
-								</ul>
-							</div>
-							<div className="mt-6">
-								<motion.button
-									onClick={() => handleBuy(plan)}
-									disabled={isLoading && selectedPlan === plan.name}
-									whileHover={{ scale: 1.05 }}
-									whileTap={{ scale: 0.95 }}
-									className={`block w-full py-3 px-4 rounded-lg font-semibold text-center transition-colors ${
-										plan.popular
-											? "bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/50"
-											: "bg-blue-100 dark:bg-blue-900/50 dark:text-blue-300 text-blue-600 hover:bg-blue-200 dark:hover:bg-blue-800"
-									} disabled:opacity-50 disabled:cursor-wait`}
-								>
-									{isLoading && selectedPlan === plan.name
-										? "Abriendo..."
-										: "CONTRATAR AHORA"}
-								</motion.button>
+										</div>
+										<p className="text-base text-green-500 dark:text-green-400 font-bold">
+											50% OFF (primeros 2 meses)
+										</p>
+										<p className="text-xs text-gray-500 dark:text-gray-400 h-8 mt-2">
+											{plan.budget}
+										</p>
+									</div>
+									<ul className="text-left space-y-3">
+										{plan.features.map((feature, featureIndex) => (
+											<li
+												key={featureIndex}
+												className="flex items-start text-sm"
+											>
+												<feature.icon className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+												<span className="text-gray-700 dark:text-gray-300">
+													{feature.text}
+												</span>
+											</li>
+										))}
+									</ul>
+								</div>
+								<div className="mt-6">
+									<motion.button
+										onClick={() => handleBuy(plan)}
+										disabled={isLoading && selectedPlan === plan.name}
+										whileHover={{ scale: 1.05 }}
+										whileTap={{ scale: 0.95 }}
+										className={`block w-full py-3 px-4 rounded-lg font-semibold text-center transition-colors ${
+											plan.popular
+												? "bg-blue-600 text-white hover:bg-blue-700"
+												: "bg-blue-100 dark:bg-blue-900/50 dark:text-blue-300 text-blue-600 hover:bg-blue-200 dark:hover:bg-blue-800"
+										} disabled:opacity-50 disabled:cursor-wait`}
+									>
+										{isLoading && selectedPlan === plan.name
+											? "Abriendo..."
+											: "CONTRATAR AHORA"}
+									</motion.button>
+								</div>
 							</div>
 						</motion.div>
 					))}

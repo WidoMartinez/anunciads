@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Target, TrendingUp, Users, BarChart3 } from "lucide-react";
 import logoAzul from "../assets/logo anunciads/logoazul.png"; // Importa tu logo
+import GradientText from "./GradientText"; // Importa el componente de gradiente
 
 const kpis = [
 	{ metric: "7.85%", label: "CTR Promedio", icon: Target },
@@ -23,7 +24,7 @@ const KpiSection = () => {
 					<div className="flex justify-center items-center gap-4 mb-4">
 						<img src={logoAzul} alt="AnunciAds Logo" className="h-12 w-12" />
 						<h2 className="text-4xl font-bold text-gray-900 dark:text-white">
-							Resultados que Hablan por Sí Solos
+							<GradientText>Resultados que Hablan por Sí Solos</GradientText>
 						</h2>
 					</div>
 					<p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">

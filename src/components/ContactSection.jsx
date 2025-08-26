@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Phone, MapPin, MessageCircle, Send } from "lucide-react";
+import {
+	Mail,
+	Phone,
+	MapPin,
+	MessageCircle,
+	Send,
+	AlertTriangle,
+	CheckCircle,
+} from "lucide-react";
+import axios from "axios"; // <--- Importamos axios
 
 const ContactSection = () => {
 	const [contactFormData, setContactFormData] = useState({
@@ -9,7 +18,8 @@ const ContactSection = () => {
 		phone: "",
 		email: "",
 	});
-	const [formStatus, setFormStatus] = useState("idle");
+	// Estado mejorado para manejar el feedback al usuario
+	const [formStatus, setFormStatus] = useState({ status: "idle", message: "" }); // idle, sending, success, error
 
 	const gtag_report_conversion = (url, callback) => {
 		if (typeof window.gtag === "function") {
@@ -32,22 +42,37 @@ const ContactSection = () => {
 		setContactFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
-	const handleContactFormSubmit = (e) => {
+	// --- **FUNCIÓN DE ENVÍO MODIFICADA** ---
+	const handleContactFormSubmit = async (e) => {
 		e.preventDefault();
-		setFormStatus("sending");
-		const message = `
-¡Hola! Tengo una consulta desde el formulario de contacto principal:
-*Nombre:* ${contactFormData.name}
-*Email:* ${contactFormData.email}
-*Teléfono:* ${contactFormData.phone}
-*Página Web:* ${contactFormData.website}
-    `.trim();
-		const encodedMessage = encodeURIComponent(message);
-		const whatsappUrl = `https://api.whatsapp.com/send/?phone=56939363916&text=${encodedMessage}`;
-		gtag_report_conversion(whatsappUrl, () => {
-			setContactFormData({ name: "", website: "", phone: "", email: "" });
-			setFormStatus("idle");
-		});
+		setFormStatus({ status: "sending", message: "" });
+
+		// Usamos la variable de entorno de Vite para la URL del API
+		const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+		try {
+			const response = await axios.post(
+				`${apiUrl}/send-email`,
+				contactFormData
+			);
+
+			if (response.status === 200) {
+				setFormStatus({
+					status: "success",
+					message:
+						"¡Mensaje enviado! Nos pondremos en contacto contigo pronto.",
+				});
+				setContactFormData({ name: "", website: "", phone: "", email: "" }); // Limpiar formulario
+				gtag_report_conversion(null, null); // Reportar conversión sin abrir URL
+			}
+		} catch (error) {
+			console.error("Error al enviar el formulario:", error);
+			setFormStatus({
+				status: "error",
+				message:
+					"Hubo un error. Por favor, intenta de nuevo o contáctanos por WhatsApp.",
+			});
+		}
 	};
 
 	return (
@@ -68,6 +93,7 @@ const ContactSection = () => {
 					</p>
 				</motion.div>
 				<div className="grid lg:grid-cols-2 gap-12 items-start">
+					{/* Columna de Información de Contacto (sin cambios) */}
 					<motion.div
 						initial={{ opacity: 0, x: -50 }}
 						whileInView={{ opacity: 1, x: 0 }}
@@ -148,6 +174,8 @@ const ContactSection = () => {
 							</motion.a>
 						</div>
 					</motion.div>
+
+					{/* Columna del Formulario (con cambios) */}
 					<motion.div
 						initial={{ opacity: 0, x: 50 }}
 						whileInView={{ opacity: 1, x: 0 }}
@@ -158,6 +186,7 @@ const ContactSection = () => {
 							Envíanos un Mensaje
 						</h3>
 						<form onSubmit={handleContactFormSubmit} className="space-y-6">
+							{/* Campos del formulario (sin cambios) */}
 							<div>
 								<label
 									htmlFor="name"
@@ -237,21 +266,41 @@ const ContactSection = () => {
 									type="submit"
 									whileHover={{ scale: 1.05 }}
 									whileTap={{ scale: 0.95 }}
-									disabled={formStatus === "sending"}
+									disabled={formStatus.status === "sending"}
 									className="w-full bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors flex items-center justify-center disabled:opacity-70"
 								>
-									{formStatus === "sending" ? (
+									{formStatus.status === "sending" ? (
 										<>
 											<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
 											<span>Enviando...</span>
 										</>
 									) : (
 										<>
-											Contactar por WhatsApp
+											Enviar Mensaje
 											<Send className="ml-2 h-5 w-5" />
 										</>
 									)}
 								</motion.button>
+							</div>
+
+							{/* --- **NUEVO: MENSAJES DE FEEDBACK** --- */}
+							<div className="h-10 mt-4">
+								{formStatus.status === "success" && (
+									<div className="flex items-center justify-center text-center text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/50 p-3 rounded-lg">
+										<CheckCircle className="h-5 w-5 mr-2" />
+										<span className="text-sm font-medium">
+											{formStatus.message}
+										</span>
+									</div>
+								)}
+								{formStatus.status === "error" && (
+									<div className="flex items-center justify-center text-center text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/50 p-3 rounded-lg">
+										<AlertTriangle className="h-5 w-5 mr-2" />
+										<span className="text-sm font-medium">
+											{formStatus.message}
+										</span>
+									</div>
+								)}
 							</div>
 						</form>
 					</motion.div>

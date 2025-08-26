@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Star } from "lucide-react";
 import TestimonialSlider from "./TestimonialSlider.jsx";
+import GradientText from "./GradientText"; // Importa el componente de gradiente
 
 const googlePartnerLogo =
 	"https://api.accredible.com/v1/frontend/credential_website_embed_image/badge/127085552";
@@ -41,7 +41,7 @@ const ProofSection = () => {
 					className="text-center mb-16"
 				>
 					<h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-						Confianza y Resultados Comprobados
+						<GradientText>Confianza y Resultados Comprobados</GradientText>
 					</h2>
 					<p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
 						Somos partners oficiales de Google y nuestros clientes avalan
@@ -54,7 +54,7 @@ const ProofSection = () => {
 						initial={{ opacity: 0, x: -50 }}
 						whileInView={{ opacity: 1, x: 0 }}
 						transition={{ duration: 0.8 }}
-						className="bg-white dark:bg-gray-800 p-10 rounded-2xl ring-2 ring-blue-500/50 h-full flex flex-col justify-center shadow-lg"
+						className="bg-white dark:bg-gray-800 p-10 rounded-2xl border border-gray-200 dark:border-gray-700 h-full flex flex-col justify-center shadow-lg"
 					>
 						<div className="flex flex-col sm:flex-row items-center gap-8 text-center sm:text-left">
 							<img
@@ -80,7 +80,7 @@ const ProofSection = () => {
 						initial={{ opacity: 0, x: 50 }}
 						whileInView={{ opacity: 1, x: 0 }}
 						transition={{ duration: 0.8 }}
-						className="ring-2 ring-blue-500/50 rounded-2xl shadow-lg"
+						className="rounded-2xl shadow-lg"
 					>
 						<TestimonialSlider testimonials={testimonials} />
 					</motion.div>

@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, TrendingUp } from "lucide-react";
-import GradientText from "../GradientText";
+import GradientText from "../components/GradientText";
 import dashboardHero from "../assets/dashboard-hero.png";
 
 const Hero = () => {

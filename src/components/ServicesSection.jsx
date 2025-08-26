@@ -8,6 +8,7 @@ import {
 	ShoppingCart,
 	ArrowRight,
 } from "lucide-react";
+import GradientText from "./GradientText"; // Importa el componente de gradiente
 
 const services = [
 	{
@@ -45,7 +46,7 @@ const ServicesSection = () => {
 					className="text-center mb-16"
 				>
 					<h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-						Soluciones a tu Medida
+						<GradientText>Soluciones a tu Medida</GradientText>
 					</h2>
 					<p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
 						Desde la gestión publicitaria hasta el desarrollo de tu tienda

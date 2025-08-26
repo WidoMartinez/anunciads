@@ -10,17 +10,18 @@ import KpiSection from "./components/KpiSection";
 import ServicesSection from "./components/ServicesSection";
 import ProofSection from "./components/ProofSection";
 import ClientMarquee from "./components/ClientMarquee";
-import FAQ from "./FAQ"; // Mantenemos FAQ como componente simple
+import FAQ from "./components/FAQ"; // Cambiado para importar desde la nueva ubicación
 import PricingSection from "./components/PricingSection";
 import MethodSection from "./components/MethodSection";
 import ContactSection from "./components/ContactSection";
 import Footer from "./components/Footer";
+import GradientText from "./components/GradientText"; // IMPORTAMOS EL COMPONENTE
 
 // --- COMPONENTES DE UI ADICIONALES ---
-import BudgetCalculator from "./BudgetCalculator";
-import DiscountPopup from "./DiscountPopup";
-import Chatbot from "./Chatbot.jsx";
-import FloatingHelpWidget from "./FloatingHelpWidget.jsx";
+import BudgetCalculator from "./components/BudgetCalculator"; // Cambiado para importar desde la nueva ubicación
+import DiscountPopup from "./components/DiscountPopup"; // Cambiado para importar desde la nueva ubicación
+import Chatbot from "./components/Chatbot.jsx";
+import FloatingHelpWidget from "./components/FloatingHelpWidget.jsx";
 
 const App = () => {
 	const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
@@ -87,7 +88,7 @@ const App = () => {
 							className="text-center mb-16"
 						>
 							<h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-								Preguntas Frecuentes
+								<GradientText>Preguntas Frecuentes</GradientText>
 							</h2>
 							<p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
 								Resolvemos tus dudas más comunes para que tomes la mejor

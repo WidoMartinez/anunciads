@@ -1,32 +1,24 @@
 // server.js
 import express from "express";
 import cors from "cors";
-import { MercadoPagoConfig, Preference, Payment } from "mercadopago";
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 
-// --- CONFIGURACIÓN INICIAL ---
-// Tu Access Token de PRUEBA. Para producción final, deberás cambiarlo por el de PRODUCCIÓN.
-const accessToken =
-	"TEST-7789908977314890-080311-63e6f0b9f6018bc165bb0d817248e786-136386884";
-
-const client = new MercadoPagoConfig({
-	accessToken: accessToken,
-	options: { timeout: 5000 },
-});
+dotenv.config(); // Carga las variables de entorno del archivo .env
 
 const app = express();
 app.use(express.json());
 
 // --- CONFIGURACIÓN DE CORS ---
-// Es una buena práctica ser específico sobre qué dominios pueden hacer peticiones.
 const allowedOrigins = [
-	"https://www.anunciads.cl", // Tu dominio principal de frontend
-	"https://anunciads.cl", // Tu dominio sin 'www'
+	"https://www.anunciads.cl",
+	"https://anunciads.cl",
+	"http://localhost:5173", // Para desarrollo local
 ];
 
 app.use(
 	cors({
 		origin: function (origin, callback) {
-			// Permite peticiones sin 'origin' (como las de Postman o apps móviles)
 			if (!origin) return callback(null, true);
 			if (allowedOrigins.indexOf(origin) === -1) {
 				const msg =
@@ -38,75 +30,54 @@ app.use(
 	})
 );
 
-// --- RUTA PARA CREAR LA PREFERENCIA DE PAGO ---
-app.post("/create_preference", async (req, res) => {
+// --- RUTA PARA ENVIAR CORREO ELECTRÓNICO ---
+app.post("/send-email", async (req, res) => {
+	const { name, email, phone, website } = req.body;
+
+	if (!name || !email || !phone || !website) {
+		return res
+			.status(400)
+			.json({ message: "Por favor, completa todos los campos." });
+	}
+
+	// --- **CONFIGURACIÓN DEL TRANSPORTER MODIFICADA** ---
+	// Ahora usa los datos SMTP de tu dominio desde el archivo .env
+	const transporter = nodemailer.createTransport({
+		host: process.env.EMAIL_HOST,
+		port: process.env.EMAIL_PORT,
+		secure: process.env.EMAIL_PORT == 465, // true para puerto 465, false para otros
+		auth: {
+			user: process.env.EMAIL_USER, // contacto@anunciads.cl
+			pass: process.env.EMAIL_PASS, // la contraseña de tu correo
+		},
+	});
+
+	// Configurar el contenido del correo (sin cambios)
+	const mailOptions = {
+		from: `"Sitio Web AnunciAds" <${process.env.EMAIL_USER}>`,
+		to: process.env.EMAIL_TO,
+		subject: "Nuevo Mensaje del Formulario de Contacto",
+		html: `
+            <h1>Nuevo Contacto desde anunciads.cl</h1>
+            <p>Has recibido un nuevo mensaje a través del formulario de tu sitio web.</p>
+            <h2>Detalles del Contacto:</h2>
+            <ul>
+                <li><strong>Nombre:</strong> ${name}</li>
+                <li><strong>Email del remitente:</strong> ${email}</li>
+                <li><strong>Teléfono:</strong> ${phone}</li>
+                <li><strong>Sitio Web:</strong> <a href="${website}">${website}</a></li>
+            </ul>
+        `,
+	};
+
+	// Enviar el correo
 	try {
-		const { title, price, quantity } = req.body;
-
-		const preferenceBody = {
-			items: [
-				{
-					title: title,
-					unit_price: Number(price),
-					quantity: Number(quantity),
-					currency_id: "CLP", // Moneda para Chile
-				},
-			],
-			back_urls: {
-				success: "https://www.anunciads.cl/pago-exitoso",
-				failure: "https://www.anunciads.cl/pago-fallido",
-				pending: "https://www.anunciads.cl/pago-pendiente",
-			},
-			auto_return: "approved",
-			// --- ¡URL DE NOTIFICACIÓN DE PRODUCCIÓN! ---
-			// Aquí usamos la URL pública de tu backend desplegado en Render.
-			notification_url: "https://anunciads.onrender.com/webhook",
-		};
-
-		const preference = new Preference(client);
-		const result = await preference.create({ body: preferenceBody });
-
-		// Devolvemos la URL de redirección al frontend
-		res.json({
-			redirectUrl: result.init_point,
-		});
+		await transporter.sendMail(mailOptions);
+		res.status(200).json({ message: "Correo enviado exitosamente." });
 	} catch (error) {
-		console.log("Error al crear preferencia:", error);
-		res.status(500).send("Error al crear la preferencia de pago.");
+		console.error("Error al enviar el correo:", error);
+		res.status(500).json({ message: "Error interno al enviar el correo." });
 	}
-});
-
-// --- RUTA PARA RECIBIR LAS NOTIFICACIONES (WEBHOOKS) ---
-app.post("/webhook", async (req, res) => {
-	const paymentQuery = req.query;
-	console.log("🔔 Notificación de Webhook recibida:", paymentQuery);
-
-	if (paymentQuery.type === "payment" && paymentQuery["data.id"]) {
-		const paymentId = paymentQuery["data.id"];
-
-		try {
-			const paymentService = new Payment(client);
-			const paymentInfo = await paymentService.get({ id: paymentId });
-
-			console.log("✅ Información completa del pago obtenida:", {
-				id: paymentInfo.id,
-				status: paymentInfo.status,
-				status_detail: paymentInfo.status_detail,
-				payer_email: paymentInfo.payer.email,
-			});
-
-			if (paymentInfo.status === "approved") {
-				console.log(
-					`✅ El pago ${paymentInfo.id} fue aprobado. Actualizando sistema...`
-				);
-			} else if (paymentInfo.status === "rejected") {
-				console.log(`❌ El pago ${paymentInfo.id} fue rechazado.`);
-			}
-		} catch (error) {
-			console.error("Error al obtener información del pago:", error);
-		}
-	}
-	res.sendStatus(200);
 });
 
 // --- INICIAR EL SERVIDOR ---

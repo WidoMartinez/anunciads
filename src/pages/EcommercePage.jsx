@@ -12,8 +12,8 @@ import {
 	Shield,
 	ChevronDown,
 } from "lucide-react";
-import GradientText from "../GradientText"; // Asegúrate que la ruta sea correcta
-import FAQ from "../FAQ"; // Reutilizamos el componente de FAQ
+import GradientText from "../components/GradientText"; // Asegúrate que la ruta sea correcta
+import FAQ from "../components/FAQ"; // Reutilizamos el componente de FAQ
 
 // Componente de Header reutilizable
 const Header = () => (
@@ -72,7 +72,7 @@ const Header = () => (
 						rel="noopener noreferrer"
 						whileHover={{ scale: 1.05 }}
 						whileTap={{ scale: 0.95 }}
-						className="bg-white text-blue-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+						className="bg-animated-gradient text-white px-6 py-2 rounded-lg font-semibold transition-transform duration-300"
 					>
 						Consulta Gratuita
 					</motion.a>
@@ -131,7 +131,7 @@ const EcommercePage = () => {
 		});
 	};
 
-	const प्लांस = [
+	const plans = [
 		{
 			name: "E-commerce Inicial",
 			description: "Perfecto para tiendas que empiezan a vender online.",
@@ -217,7 +217,7 @@ const EcommercePage = () => {
 								rel="noopener noreferrer"
 								whileHover={{ scale: 1.05 }}
 								whileTap={{ scale: 0.95 }}
-								className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors inline-flex items-center justify-center"
+								className="bg-animated-gradient text-white px-8 py-4 rounded-lg font-semibold text-lg transition-transform duration-300 inline-flex items-center justify-center"
 							>
 								Aumentar Mis Ventas
 								<ArrowRight className="ml-2 h-5 w-5" />
@@ -235,7 +235,9 @@ const EcommercePage = () => {
 							className="text-center mb-16"
 						>
 							<h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-								¿Por Qué Google Ads para tu Tienda Online?
+								<GradientText>
+									¿Por Qué Google Ads para tu Tienda Online?
+								</GradientText>
 							</h2>
 							<p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
 								Nuestras estrategias están enfocadas en lo que más importa: el
@@ -295,7 +297,7 @@ const EcommercePage = () => {
 							className="text-center mb-16"
 						>
 							<h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-								Planes para E-commerce
+								<GradientText>Planes para E-commerce</GradientText>
 							</h2>
 							<p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
 								Elige el plan que se ajuste al tamaño y los objetivos de tu
@@ -303,7 +305,7 @@ const EcommercePage = () => {
 							</p>
 						</motion.div>
 						<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 justify-center">
-							{प्लांस.map((plan, index) => (
+							{plans.map((plan, index) => (
 								<motion.div
 									key={index}
 									initial={{ opacity: 0, y: 50 }}
@@ -364,11 +366,7 @@ const EcommercePage = () => {
 											disabled={isLoading && selectedPlan === plan.name}
 											whileHover={{ scale: 1.05 }}
 											whileTap={{ scale: 0.95 }}
-											className={`block w-full py-3 px-4 rounded-lg font-semibold text-center transition-colors ${
-												plan.popular
-													? "bg-blue-500 text-white hover:bg-blue-600"
-													: "bg-blue-100 dark:bg-blue-900/50 text-blue-600 hover:bg-blue-200"
-											} disabled:opacity-50 disabled:cursor-wait`}
+											className="block w-full py-3 px-4 rounded-lg font-semibold text-center transition-transform duration-300 bg-animated-gradient text-white disabled:opacity-50 disabled:cursor-wait"
 										>
 											{isLoading && selectedPlan === plan.name
 												? "Abriendo..."
@@ -390,7 +388,9 @@ const EcommercePage = () => {
 							className="text-center mb-16"
 						>
 							<h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-								Preguntas Frecuentes sobre E-commerce
+								<GradientText>
+									Preguntas Frecuentes sobre E-commerce
+								</GradientText>
 							</h2>
 						</motion.div>
 						<motion.div

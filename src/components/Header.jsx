@@ -82,7 +82,7 @@ const Header = ({ toggleTheme, isDarkMode, setIsCalculatorOpen }) => {
 							rel="noopener noreferrer"
 							whileHover={{ scale: 1.05 }}
 							whileTap={{ scale: 0.95 }}
-							className="bg-white text-blue-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+							className="bg-animated-gradient text-white px-6 py-2 rounded-lg font-semibold transition-transform duration-300"
 						>
 							Consulta Gratuita
 						</motion.a>
