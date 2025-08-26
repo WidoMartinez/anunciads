@@ -10,7 +10,7 @@ import {
 	CheckCircle,
 } from "lucide-react";
 import axios from "axios";
-import GradientText from "./GradientText"; // <-- 1. Importamos el componente de gradiente
+import GradientText from "./GradientText";
 
 const ContactSection = () => {
 	const [contactFormData, setContactFormData] = useState({
@@ -46,7 +46,9 @@ const ContactSection = () => {
 		e.preventDefault();
 		setFormStatus({ status: "sending", message: "" });
 
-		const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
+		// --- SOLUCIÓN DEFINITIVA ---
+		// Se establece la URL de producción directamente.
+		const apiUrl = "https://anunciads.onrender.com";
 
 		try {
 			const response = await axios.post(
@@ -82,7 +84,6 @@ const ContactSection = () => {
 					transition={{ duration: 0.8 }}
 					className="text-center mb-16"
 				>
-					{/* --- 2. Aplicamos el gradiente al título --- */}
 					<h2 className="text-4xl font-bold mb-4">
 						<GradientText>Ponte en Contacto</GradientText>
 					</h2>

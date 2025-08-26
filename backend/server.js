@@ -32,27 +32,32 @@ app.use(
 
 // --- RUTA PARA ENVIAR CORREO ELECTRÓNICO ---
 app.post("/send-email", async (req, res) => {
+	console.log("✅ Petición recibida en /send-email");
 	const { name, email, phone, website } = req.body;
 
 	if (!name || !email || !phone || !website) {
+		console.log("❌ Error: Faltan campos en la petición.");
 		return res
 			.status(400)
 			.json({ message: "Por favor, completa todos los campos." });
 	}
 
-	// --- **CONFIGURACIÓN DEL TRANSPORTER MODIFICADA** ---
-	// Ahora usa los datos SMTP de tu dominio desde el archivo .env
+	console.log("✅ Datos recibidos:", { name, email, phone, website });
+
+	// --- **CONFIGURACIÓN DEL TRANSPORTER MEJORADA** ---
 	const transporter = nodemailer.createTransport({
 		host: process.env.EMAIL_HOST,
 		port: process.env.EMAIL_PORT,
-		secure: process.env.EMAIL_PORT == 465, // true para puerto 465, false para otros
+		secure: process.env.EMAIL_PORT == 465,
 		auth: {
-			user: process.env.EMAIL_USER, // contacto@anunciads.cl
-			pass: process.env.EMAIL_PASS, // la contraseña de tu correo
+			user: process.env.EMAIL_USER,
+			pass: process.env.EMAIL_PASS,
 		},
+		// --- AÑADIMOS TIMEOUTS PARA EVITAR QUE SE QUEDE PEGADO ---
+		connectionTimeout: 10000, // 10 segundos
+		socketTimeout: 10000, // 10 segundos
 	});
 
-	// Configurar el contenido del correo (sin cambios)
 	const mailOptions = {
 		from: `"Sitio Web AnunciAds" <${process.env.EMAIL_USER}>`,
 		to: process.env.EMAIL_TO,
@@ -72,10 +77,12 @@ app.post("/send-email", async (req, res) => {
 
 	// Enviar el correo
 	try {
+		console.log("⏳ Intentando enviar el correo electrónico...");
 		await transporter.sendMail(mailOptions);
+		console.log("✅ Correo enviado exitosamente.");
 		res.status(200).json({ message: "Correo enviado exitosamente." });
 	} catch (error) {
-		console.error("Error al enviar el correo:", error);
+		console.error("❌ Error al enviar el correo:", error);
 		res.status(500).json({ message: "Error interno al enviar el correo." });
 	}
 });

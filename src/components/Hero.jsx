@@ -38,7 +38,9 @@ const Hero = () => {
 		e.preventDefault();
 		setFormStatus("sending");
 
-		const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
+		// --- CORRECCIÓN ---
+		// Aseguramos que la URL de la API se obtenga de las variables de entorno de Vite.
+		const apiUrl = import.meta.env.VITE_API_URL;
 
 		try {
 			const response = await axios.post(
