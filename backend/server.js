@@ -4,31 +4,16 @@ import cors from "cors";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 
-dotenv.config(); // Carga las variables de entorno del archivo .env
+dotenv.config();
 
 const app = express();
 app.use(express.json());
 
-// --- CONFIGURACIÓN DE CORS ---
-const allowedOrigins = [
-	"https://www.anunciads.cl",
-	"https://anunciads.cl",
-	"http://localhost:5173", // Para desarrollo local
-];
-
-app.use(
-	cors({
-		origin: function (origin, callback) {
-			if (!origin) return callback(null, true);
-			if (allowedOrigins.indexOf(origin) === -1) {
-				const msg =
-					"La política de CORS para este sitio no permite acceso desde el origen especificado.";
-				return callback(new Error(msg), false);
-			}
-			return callback(null, true);
-		},
-	})
-);
+// --- SOLUCIÓN DEFINITIVA PARA CORS ---
+// Simplemente usamos cors() sin una configuración compleja.
+// Esto añadirá la cabecera 'Access-Control-Allow-Origin: *' a todas las respuestas,
+// permitiendo que tu frontend (anunciads.cl) pueda comunicarse con el backend.
+app.use(cors());
 
 // --- RUTA PARA ENVIAR CORREO ELECTRÓNICO ---
 app.post("/send-email", async (req, res) => {
@@ -44,7 +29,6 @@ app.post("/send-email", async (req, res) => {
 
 	console.log("✅ Datos recibidos:", { name, email, phone, website });
 
-	// --- **CONFIGURACIÓN DEL TRANSPORTER MEJORADA** ---
 	const transporter = nodemailer.createTransport({
 		host: process.env.EMAIL_HOST,
 		port: process.env.EMAIL_PORT,
@@ -53,9 +37,8 @@ app.post("/send-email", async (req, res) => {
 			user: process.env.EMAIL_USER,
 			pass: process.env.EMAIL_PASS,
 		},
-		// --- AÑADIMOS TIMEOUTS PARA EVITAR QUE SE QUEDE PEGADO ---
-		connectionTimeout: 10000, // 10 segundos
-		socketTimeout: 10000, // 10 segundos
+		connectionTimeout: 15000, // 15 segundos
+		socketTimeout: 15000, // 15 segundos
 	});
 
 	const mailOptions = {
@@ -75,7 +58,6 @@ app.post("/send-email", async (req, res) => {
         `,
 	};
 
-	// Enviar el correo
 	try {
 		console.log("⏳ Intentando enviar el correo electrónico...");
 		await transporter.sendMail(mailOptions);
