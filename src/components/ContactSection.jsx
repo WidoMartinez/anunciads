@@ -9,7 +9,8 @@ import {
 	AlertTriangle,
 	CheckCircle,
 } from "lucide-react";
-import axios from "axios"; // <--- Importamos axios
+import axios from "axios";
+import GradientText from "./GradientText"; // <-- 1. Importamos el componente de gradiente
 
 const ContactSection = () => {
 	const [contactFormData, setContactFormData] = useState({
@@ -18,8 +19,7 @@ const ContactSection = () => {
 		phone: "",
 		email: "",
 	});
-	// Estado mejorado para manejar el feedback al usuario
-	const [formStatus, setFormStatus] = useState({ status: "idle", message: "" }); // idle, sending, success, error
+	const [formStatus, setFormStatus] = useState({ status: "idle", message: "" });
 
 	const gtag_report_conversion = (url, callback) => {
 		if (typeof window.gtag === "function") {
@@ -42,12 +42,10 @@ const ContactSection = () => {
 		setContactFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
-	// --- **FUNCIÓN DE ENVÍO MODIFICADA** ---
 	const handleContactFormSubmit = async (e) => {
 		e.preventDefault();
 		setFormStatus({ status: "sending", message: "" });
 
-		// Usamos la variable de entorno de Vite para la URL del API
 		const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 		try {
@@ -62,8 +60,8 @@ const ContactSection = () => {
 					message:
 						"¡Mensaje enviado! Nos pondremos en contacto contigo pronto.",
 				});
-				setContactFormData({ name: "", website: "", phone: "", email: "" }); // Limpiar formulario
-				gtag_report_conversion(null, null); // Reportar conversión sin abrir URL
+				setContactFormData({ name: "", website: "", phone: "", email: "" });
+				gtag_report_conversion(null, null);
 			}
 		} catch (error) {
 			console.error("Error al enviar el formulario:", error);
@@ -84,8 +82,9 @@ const ContactSection = () => {
 					transition={{ duration: 0.8 }}
 					className="text-center mb-16"
 				>
-					<h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-						Ponte en Contacto
+					{/* --- 2. Aplicamos el gradiente al título --- */}
+					<h2 className="text-4xl font-bold mb-4">
+						<GradientText>Ponte en Contacto</GradientText>
 					</h2>
 					<p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
 						¿Tienes una pregunta o estás listo para comenzar? Completa el
@@ -93,7 +92,6 @@ const ContactSection = () => {
 					</p>
 				</motion.div>
 				<div className="grid lg:grid-cols-2 gap-12 items-start">
-					{/* Columna de Información de Contacto (sin cambios) */}
 					<motion.div
 						initial={{ opacity: 0, x: -50 }}
 						whileInView={{ opacity: 1, x: 0 }}
@@ -175,7 +173,6 @@ const ContactSection = () => {
 						</div>
 					</motion.div>
 
-					{/* Columna del Formulario (con cambios) */}
 					<motion.div
 						initial={{ opacity: 0, x: 50 }}
 						whileInView={{ opacity: 1, x: 0 }}
@@ -186,7 +183,6 @@ const ContactSection = () => {
 							Envíanos un Mensaje
 						</h3>
 						<form onSubmit={handleContactFormSubmit} className="space-y-6">
-							{/* Campos del formulario (sin cambios) */}
 							<div>
 								<label
 									htmlFor="name"
@@ -283,7 +279,6 @@ const ContactSection = () => {
 								</motion.button>
 							</div>
 
-							{/* --- **NUEVO: MENSAJES DE FEEDBACK** --- */}
 							<div className="h-10 mt-4">
 								{formStatus.status === "success" && (
 									<div className="flex items-center justify-center text-center text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/50 p-3 rounded-lg">
