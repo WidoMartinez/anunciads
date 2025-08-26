@@ -12,7 +12,7 @@ import {
 	Phone,
 	AlertTriangle,
 } from "lucide-react";
-import axios from "axios"; // 1. Importamos axios
+import axios from "axios"; // Asegúrate de tener axios importado
 
 const questions = [
 	{
@@ -81,7 +81,7 @@ const BudgetCalculator = ({ onClose }) => {
 	const [currentStep, setCurrentStep] = useState(0);
 	const [error, setError] = useState("");
 	const [isSubmitted, setIsSubmitted] = useState(false);
-	const [formStatus, setFormStatus] = useState("idle"); // Estado para el envío
+	const [formStatus, setFormStatus] = useState("idle");
 
 	const gtag_form_submission = () => {
 		if (typeof window.gtag === "function") {
@@ -101,7 +101,6 @@ const BudgetCalculator = ({ onClose }) => {
 	}, [isSubmitted, onClose]);
 
 	const handleNext = () => {
-		// ... (esta función no necesita cambios)
 		const currentFieldId = questions[currentStep].id;
 		if (currentFieldId === "website") {
 			if (!formData.hasWebsite) {
@@ -125,7 +124,6 @@ const BudgetCalculator = ({ onClose }) => {
 	};
 
 	const handleBack = () => {
-		// ... (esta función no necesita cambios)
 		setError("");
 		if (currentStep > 0) {
 			setCurrentStep(currentStep - 1);
@@ -133,7 +131,6 @@ const BudgetCalculator = ({ onClose }) => {
 	};
 
 	const handleChange = (e) => {
-		// ... (esta función no necesita cambios)
 		setError("");
 		const { id, value, type, checked, name } = e.target;
 		if (name === "hasWebsite") {
@@ -156,14 +153,14 @@ const BudgetCalculator = ({ onClose }) => {
 		}
 	};
 
-	// --- 2. MODIFICAMOS LA FUNCIÓN DE ENVÍO ---
+	// --- FUNCIÓN DE ENVÍO CORREGIDA ---
 	const handleSubmit = async () => {
 		if (formData.goals.length === 0) {
 			setError("Por favor, selecciona al menos un objetivo.");
 			return;
 		}
 		setError("");
-		setFormStatus("sending"); // Cambiamos el estado a "enviando"
+		setFormStatus("sending");
 
 		const apiUrl = "https://anunciads.onrender.com";
 		const websiteInfo =
@@ -172,22 +169,25 @@ const BudgetCalculator = ({ onClose }) => {
 				: "No tiene, posible desarrollo.";
 		const goalsString = formData.goals.join(", ");
 
+		// Creamos el objeto con TODOS los datos a enviar
 		const submissionData = {
 			name: formData.name,
 			email: formData.email,
 			phone: formData.phone,
 			website: websiteInfo,
-			// Agregamos los datos adicionales al cuerpo del correo
+			source: "Calculadora de Presupuesto", // Identificador del formulario
+			// Creamos un cuerpo de mensaje con la información extra
 			message: `
-				Presupuesto Mensual: ${formData.monthlyBudget}
-				Objetivos: ${goalsString}
+				Presupuesto Mensual Seleccionado: ${formData.monthlyBudget}
+				Objetivos Principales: ${goalsString}
 			`,
 		};
 
 		try {
+			// Enviamos los datos al servidor
 			await axios.post(`${apiUrl}/send-email`, submissionData);
-			gtag_form_submission(); // Registramos la conversión
-			setIsSubmitted(true); // Mostramos el mensaje de éxito
+			gtag_form_submission();
+			setIsSubmitted(true);
 			setFormStatus("success");
 		} catch (error) {
 			console.error("Error al enviar el formulario de la calculadora:", error);
@@ -196,7 +196,6 @@ const BudgetCalculator = ({ onClose }) => {
 		}
 	};
 
-	// ... (el resto del JSX se mantiene casi igual, solo actualizaremos el botón final)
 	const currentQuestion = questions[currentStep];
 	const variants = {
 		enter: (direction) => ({ x: direction > 0 ? 300 : -300, opacity: 0 }),
@@ -446,14 +445,13 @@ const BudgetCalculator = ({ onClose }) => {
 							Siguiente <ArrowRight className="ml-2 h-5 w-5" />
 						</motion.button>
 					) : (
-						// --- 3. ACTUALIZAMOS EL BOTÓN FINAL ---
 						<motion.button
 							type="button"
 							onClick={handleSubmit}
 							disabled={formStatus === "sending"}
 							whileHover={{ scale: 1.05 }}
 							whileTap={{ scale: 0.95 }}
-							className="flex items-center justify-center w-52 bg-green-500 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg hover:bg-green-600 disabled:opacity-70"
+							className="flex items-center justify-center w-52 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg hover:bg-blue-700 disabled:opacity-70"
 						>
 							{formStatus === "sending" ? (
 								<>

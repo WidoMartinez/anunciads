@@ -12,9 +12,8 @@ import {
 	Tag,
 	PenSquare,
 } from "lucide-react";
-import axios from "axios"; // 1. Importamos axios
+import axios from "axios";
 
-// --- FUNCIÓN DE CONVERSIÓN DE GOOGLE ADS ---
 const gtag_form_submission = () => {
 	if (typeof window.gtag === "function") {
 		window.gtag("event", "conversion", {
@@ -23,7 +22,6 @@ const gtag_form_submission = () => {
 	}
 };
 
-// Componente del Formulario Interno (MODIFICADO)
 const LeadCaptureForm = ({ type = "contact", onClose }) => {
 	const [formData, setFormData] = useState({
 		name: "",
@@ -31,7 +29,6 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 		phone: "",
 		interest: "",
 		message: "",
-		source: type,
 	});
 	const [formStatus, setFormStatus] = useState("idle"); // idle, sending, success, error
 
@@ -40,7 +37,6 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 		setFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
-	// --- LÓGICA DE ENVÍO MODIFICADA ---
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setFormStatus("sending");
@@ -48,14 +44,13 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 		const config = getFormConfig();
 		const apiUrl = "https://anunciads.onrender.com";
 
-		// Preparamos los datos para enviar al backend
 		const submissionData = {
 			name: formData.name,
 			email: formData.email,
 			phone: formData.phone,
-			website: "No especificado (Widget)", // Campo requerido por el backend
+			website: "No especificado (Widget)",
+			source: `Widget Flotante (${config.title})`, // 2. Añadimos la fuente para un asunto de correo claro
 			message: `
-				Tipo de Solicitud: ${config.title}
 				Interés Principal: ${formData.interest || "No especificado"}
 				Mensaje Adicional: ${formData.message || "Ninguno"}
 			`,
@@ -63,11 +58,11 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 
 		try {
 			await axios.post(`${apiUrl}/send-email`, submissionData);
-			gtag_form_submission(); // Registramos la conversión
+			gtag_form_submission();
 			setFormStatus("success");
 			setTimeout(() => {
 				onClose && onClose();
-			}, 3000); // Cerramos el modal después de 3 segundos
+			}, 3000);
 		} catch (error) {
 			console.error("Error al enviar formulario del widget:", error);
 			setFormStatus("error");
@@ -107,16 +102,15 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 
 	const config = getFormConfig();
 
-	const FormInput = ({ icon, children }) => (
+	const FormInput = ({ icon: Icon, children }) => (
 		<div className="relative">
 			<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-				{icon}
+				<Icon className="h-5 w-5 text-slate-400" />
 			</div>
 			{children}
 		</div>
 	);
 
-	// Si el envío fue exitoso, mostramos un mensaje de confirmación
 	if (formStatus === "success") {
 		return (
 			<div className="w-full max-w-md mx-auto bg-white dark:bg-slate-800 rounded-xl shadow-2xl border dark:border-slate-700 p-8 text-center">
@@ -161,7 +155,7 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 			<div className="p-6">
 				<form onSubmit={handleSubmit} className="space-y-4">
 					{config.fields.includes("name") && (
-						<FormInput icon={<User className="h-5 w-5 text-slate-400" />}>
+						<FormInput icon={User}>
 							<input
 								type="text"
 								name="name"
@@ -175,7 +169,7 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 						</FormInput>
 					)}
 					{config.fields.includes("email") && (
-						<FormInput icon={<Mail className="h-5 w-5 text-slate-400" />}>
+						<FormInput icon={Mail}>
 							<input
 								type="email"
 								name="email"
@@ -189,20 +183,21 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 						</FormInput>
 					)}
 					{config.fields.includes("phone") && (
-						<FormInput icon={<Phone className="h-5 w-5 text-slate-400" />}>
+						<FormInput icon={Phone}>
 							<input
 								type="tel"
 								name="phone"
 								value={formData.phone}
 								onChange={handleInputChange}
+								required
 								className="w-full pl-10 pr-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-slate-600"
-								placeholder="Teléfono (Opcional)"
+								placeholder="Teléfono"
 								disabled={formStatus === "sending"}
 							/>
 						</FormInput>
 					)}
 					{config.fields.includes("interest") && (
-						<FormInput icon={<Tag className="h-5 w-5 text-slate-400" />}>
+						<FormInput icon={Tag}>
 							<select
 								name="interest"
 								value={formData.interest}
@@ -222,8 +217,12 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 							</select>
 						</FormInput>
 					)}
+					{/* --- 1. CORRECCIÓN DEL TEXTAREA --- */}
 					{config.fields.includes("message") && (
-						<FormInput icon={<PenSquare className="h-5 w-5 text-slate-400" />}>
+						<div className="relative">
+							<div className="absolute top-3 left-0 pl-3 flex items-start pointer-events-none">
+								<PenSquare className="h-5 w-5 text-slate-400" />
+							</div>
 							<textarea
 								name="message"
 								value={formData.message}
@@ -233,7 +232,7 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 								placeholder="Cuéntanos más sobre tu proyecto..."
 								disabled={formStatus === "sending"}
 							/>
-						</FormInput>
+						</div>
 					)}
 					<button
 						type="submit"
@@ -260,6 +259,7 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 	);
 };
 
+// ... (El resto del componente FloatingHelpWidget se mantiene igual)
 const LeadCaptureModal = ({ isOpen, onClose, type }) => {
 	if (!isOpen) return null;
 	return (
