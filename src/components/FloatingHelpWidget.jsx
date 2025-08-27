@@ -22,7 +22,6 @@ const gtag_form_submission = () => {
 	}
 };
 
-// --- COMPONENTE DEL FORMULARIO COMPLETAMENTE REFACTORIZADO ---
 const LeadCaptureForm = ({ type = "contact", onClose }) => {
 	const [formData, setFormData] = useState({
 		name: "",
@@ -30,6 +29,7 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 		phone: "",
 		interest: "",
 		message: "",
+		meetingDate: "", // 1. Nuevo estado para la fecha de la reunión
 	});
 	const [formStatus, setFormStatus] = useState("idle");
 
@@ -39,7 +39,6 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 	};
 
 	const getFormConfig = () => {
-		// ... (esta función no cambia)
 		switch (type) {
 			case "quote":
 				return {
@@ -57,7 +56,7 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 						"Conversemos 15 min. sobre cómo podemos potenciar tu negocio.",
 					buttonText: "Enviar Solicitud",
 					icon: <Calendar className="w-5 h-5 text-blue-600" />,
-					fields: ["name", "email", "phone", "interest"],
+					fields: ["name", "email", "phone", "interest", "date"], // 2. Añadimos el campo 'date'
 				};
 			default:
 				return {
@@ -77,6 +76,7 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 		const config = getFormConfig();
 		const apiUrl = "https://anunciads.onrender.com";
 
+		// 3. Incluimos la fecha de la reunión en el mensaje
 		const submissionData = {
 			name: formData.name,
 			email: formData.email,
@@ -84,6 +84,7 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 			website: "No especificado (Widget)",
 			source: `Widget Flotante (${config.title})`,
 			message: `
+				Fecha y Hora Sugerida: ${formData.meetingDate || "No especificada"}
 				Interés Principal: ${formData.interest || "No especificado"}
 				Mensaje Adicional: ${formData.message || "Ninguno"}
 			`,
@@ -222,6 +223,23 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 							</select>
 						</div>
 					)}
+					{/* --- 4. RENDERIZADO DEL NUEVO CAMPO DE FECHA --- */}
+					{config.fields.includes("date") && (
+						<div className="relative">
+							<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+								<Calendar className="h-5 w-5 text-slate-400" />
+							</div>
+							<input
+								type="datetime-local"
+								name="meetingDate"
+								value={formData.meetingDate}
+								onChange={handleInputChange}
+								required
+								className="w-full pl-10 pr-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-900 dark:border-slate-600"
+								disabled={formStatus === "sending"}
+							/>
+						</div>
+					)}
 					{config.fields.includes("message") && (
 						<div className="relative">
 							<div className="absolute top-3 left-0 pl-3 flex items-start pointer-events-none">
@@ -264,6 +282,7 @@ const LeadCaptureForm = ({ type = "contact", onClose }) => {
 };
 
 const LeadCaptureModal = ({ isOpen, onClose, type }) => {
+	// ... (sin cambios)
 	if (!isOpen) return null;
 	return (
 		<div className="fixed inset-0 bg-black/60 z-[101] flex items-center justify-center p-4">
@@ -284,6 +303,7 @@ const LeadCaptureModal = ({ isOpen, onClose, type }) => {
 };
 
 const FloatingHelpWidget = () => {
+	// ... (sin cambios)
 	const [isExpanded, setIsExpanded] = useState(false);
 	const [showModal, setShowModal] = useState(false);
 	const [modalType, setModalType] = useState("advisor");
