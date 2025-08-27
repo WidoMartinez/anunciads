@@ -1,243 +1,141 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { ArrowRight, Send, User, Mail, Phone, Globe } from "lucide-react"; // Importamos nuevos iconos
-import GradientText from "./GradientText";
-import axios from "axios";
+import { useState, useEffect } from "react";
 
-// Componente para el input con icono
-const FormInput = ({ icon: Icon, children }) => (
-	<div className="relative">
-		<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-			<Icon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-		</div>
-		{children}
-	</div>
-);
+// Ya no se necesita el componente GradientText, por lo que se ha eliminado la importación.
+
+// Función para enviar el evento de conversión a Google Ads
+const trackConversion = () => {
+	// Asegúrate de que la función gtag esté disponible
+	if (typeof window.gtag === "function") {
+		window.gtag("event", "conversion", {
+			// Valor de conversión actualizado con la etiqueta proporcionada
+			send_to: "AW-980744893/w6nVCI61hb4aEL3109MD",
+		});
+		console.log("Evento de conversión enviado a Google Ads.");
+	} else {
+		console.error("La etiqueta global de Google (gtag.js) no se ha cargado.");
+	}
+};
 
 const Hero = () => {
-	const [contactFormData, setContactFormData] = useState({
-		name: "",
-		website: "",
-		phone: "",
-		email: "",
-	});
-	const [formStatus, setFormStatus] = useState("idle"); // idle, sending, success, error
+	const [isVisible, setIsVisible] = useState(false);
+	const [email, setEmail] = useState("");
+	const [message, setMessage] = useState("");
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const gtag_report_conversion = (url, callback) => {
-		if (typeof window.gtag === "function") {
-			window.gtag("event", "conversion", {
-				send_to: "AW-980744893/m9_NCPGupb0aEL3109MD",
-				event_callback: () => {
-					if (callback) callback();
-					if (url) window.open(url, "_blank");
-				},
-			});
-		} else {
-			if (callback) callback();
-			if (url) window.open(url, "_blank");
-		}
-		return false;
-	};
+	useEffect(() => {
+		// Activa la animación poco después de que el componente se monte
+		const timer = setTimeout(() => {
+			setIsVisible(true);
+		}, 100);
+		return () => clearTimeout(timer);
+	}, []);
 
-	const gtag_form_submission = () => {
-		if (typeof window.gtag === "function") {
-			window.gtag("event", "conversion", {
-				send_to: "AW-980744893/w6nVCI61hb4aEL3109MD",
-			});
-		}
-	};
-
-	const handleContactFormChange = (e) => {
-		const { name, value } = e.target;
-		setContactFormData((prev) => ({ ...prev, [name]: value }));
-	};
-
-	const handleContactFormSubmit = async (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
-		setFormStatus("sending");
-
-		const apiUrl = "https://anunciads.onrender.com";
+		if (!email) {
+			setMessage("Por favor, introduce tu correo electrónico.");
+			return;
+		}
+		setIsSubmitting(true);
+		setMessage("");
 
 		try {
-			const response = await axios.post(
-				`${apiUrl}/send-email`,
-				contactFormData
-			);
+			const response = await fetch("/api/audit-request", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ email }),
+			});
 
-			if (response.status === 200) {
-				setFormStatus("success");
-				setContactFormData({ name: "", website: "", phone: "", email: "" }); // Limpiamos el formulario
-				gtag_form_submission();
+			const data = await response.json();
+
+			if (response.ok) {
+				setMessage("¡Gracias! Te contactaremos pronto.");
+				setEmail("");
+				// Llama a la función de seguimiento de conversión aquí
+				trackConversion();
+			} else {
+				setMessage(data.message || "Hubo un error al enviar tu solicitud.");
 			}
 		} catch (error) {
-			console.error("Error al enviar el formulario:", error);
-			setFormStatus("error");
+			setMessage("Error de conexión. Inténtalo de nuevo.");
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
+
+	const backgroundImageUrl =
+		"https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=2574&auto-format&fit=crop";
 
 	return (
 		<section
-			id="inicio"
-			className="pt-16 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900/95 dark:to-gray-900"
+			className="relative bg-gray-900 text-white overflow-hidden flex items-center justify-center min-h-screen"
+			style={{
+				backgroundImage: `url(${backgroundImageUrl})`,
+				backgroundSize: "cover",
+				backgroundPosition: "center",
+				backgroundAttachment: "fixed",
+			}}
 		>
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-				<div className="grid lg:grid-cols-2 gap-12 items-center">
-					<motion.div
-						initial={{ opacity: 0, x: -50 }}
-						animate={{ opacity: 1, x: 0 }}
-						transition={{ duration: 0.8 }}
+			<div className="absolute inset-0 bg-black opacity-60"></div>
+
+			<div className="relative container mx-auto px-4 text-center py-8">
+				<div className="max-w-4xl mx-auto">
+					<h1
+						className={`text-4xl md:text-6xl font-extrabold leading-tight mb-6 transition-all duration-700 ease-out ${
+							isVisible
+								? "opacity-100 translate-y-0"
+								: "opacity-0 translate-y-10"
+						}`}
 					>
-						<div className="flex items-center space-x-2 mb-4">
-							<div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-								✓ Certificados por Google
-							</div>
-						</div>
-						<h1 className="text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-							Impulsa tu Negocio con <GradientText>Google Ads</GradientText>{" "}
-							Profesional
-						</h1>
-						<p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-							Campañas optimizadas que generan resultados reales desde el primer
-							día. Te ayudamos a configurar, lanzar y optimizar tu presencia
-							digital para atraer clientes calificados.
+						{/* Ambas líneas del título ahora están en blanco sólido */}
+						<span className="text-white">Maximizamos tu Inversión,</span>
+						<br />
+						<span className="text-white">Disparamos tus Ventas.</span>
+					</h1>
+					<p
+						className={`text-lg md:text-xl text-gray-300 mb-10 transition-all duration-700 ease-out delay-200 ${
+							isVisible
+								? "opacity-100 translate-y-0"
+								: "opacity-0 translate-y-10"
+						}`}
+					>
+						En Anunciads, convertimos clics en clientes. Deja que nuestros
+						especialistas certificados en Google Ads lleven tu negocio al
+						siguiente nivel con campañas publicitarias de alto rendimiento.
+					</p>
+
+					<form
+						onSubmit={handleSubmit}
+						className={`max-w-xl mx-auto bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-lg transition-all duration-700 ease-out delay-300 ${
+							isVisible
+								? "opacity-100 translate-y-0"
+								: "opacity-0 translate-y-10"
+						}`}
+					>
+						<p className="text-white font-bold text-lg mb-4">
+							Obtén una auditoría GRATIS de tu cuenta de Google Ads
 						</p>
-						<div className="flex flex-col sm:flex-row gap-4">
-							<motion.a
-								href="https://api.whatsapp.com/send/?phone=56939363916&text=Hola, quiero comenzar con Google Ads para mi negocio. ¿Podrían ayudarme?"
-								onClick={(e) => {
-									e.preventDefault();
-									gtag_report_conversion(e.currentTarget.href);
-								}}
-								target="_blank"
-								rel="noopener noreferrer"
-								whileHover={{ scale: 1.05 }}
-								whileTap={{ scale: 0.95 }}
-								className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+						<div className="flex flex-col md:flex-row gap-4">
+							<input
+								type="email"
+								value={email}
+								onChange={(e) => setEmail(e.target.value)}
+								placeholder="Tu correo electrónico"
+								className="flex-grow p-3 rounded-md bg-gray-700/80 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+								disabled={isSubmitting}
+							/>
+							<button
+								type="submit"
+								className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md transition duration-300 ease-in-out transform hover:scale-105 disabled:bg-blue-400 disabled:cursor-not-allowed"
+								disabled={isSubmitting}
 							>
-								Comenzar Ahora
-								<ArrowRight className="ml-2 h-5 w-5" />
-							</motion.a>
-							<motion.a
-								href="#casos"
-								whileHover={{ scale: 1.05 }}
-								whileTap={{ scale: 0.95 }}
-								className="border-2 border-blue-600 text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-50 dark:hover:bg-blue-600/10 dark:text-blue-400 dark:border-blue-400 transition-colors text-center"
-							>
-								Ver Casos de Éxito
-							</motion.a>
+								{isSubmitting ? "Enviando..." : "¡La Quiero!"}
+							</button>
 						</div>
-					</motion.div>
-					<motion.div
-						initial={{ opacity: 0, x: 50 }}
-						whileInView={{ opacity: 1, x: 0 }}
-						transition={{ duration: 0.8, delay: 0.4 }}
-						className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl border border-transparent dark:border-gray-700"
-					>
-						<h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
-							Envíanos un Mensaje
-						</h3>
-						{formStatus === "success" ? (
-							<motion.div
-								initial={{ opacity: 0, y: 20 }}
-								animate={{ opacity: 1, y: 0 }}
-								className="flex flex-col items-center justify-center h-full min-h-[300px] text-center"
-							>
-								<CheckCircle className="h-20 w-20 text-green-500 mb-4" />
-								<p className="text-xl font-semibold text-gray-800 dark:text-white">
-									¡Mensaje enviado con éxito!
-								</p>
-								<p className="text-gray-600 dark:text-gray-400 mt-2">
-									Nos pondremos en contacto contigo a la brevedad.
-								</p>
-							</motion.div>
-						) : (
-							<form onSubmit={handleContactFormSubmit} className="space-y-6">
-								<FormInput icon={User}>
-									<input
-										type="text"
-										name="name"
-										id="name"
-										required
-										value={contactFormData.name}
-										onChange={handleContactFormChange}
-										className="w-full pl-10 pr-3 py-3 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-										placeholder="Tu nombre completo"
-										disabled={formStatus === "sending"}
-									/>
-								</FormInput>
-
-								<FormInput icon={Globe}>
-									<input
-										type="url"
-										name="website"
-										id="website"
-										required
-										value={contactFormData.website}
-										onChange={handleContactFormChange}
-										className="w-full pl-10 pr-3 py-3 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-										placeholder="https://www.tuempresa.cl"
-										disabled={formStatus === "sending"}
-									/>
-								</FormInput>
-
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-									<FormInput icon={Phone}>
-										<input
-											type="tel"
-											name="phone"
-											id="phone"
-											required
-											value={contactFormData.phone}
-											onChange={handleContactFormChange}
-											className="w-full pl-10 pr-3 py-3 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-											placeholder="+56 9 3936 3916"
-											disabled={formStatus === "sending"}
-										/>
-									</FormInput>
-									<FormInput icon={Mail}>
-										<input
-											type="email"
-											id="email"
-											name="email"
-											required
-											value={contactFormData.email}
-											onChange={handleContactFormChange}
-											className="w-full pl-10 pr-3 py-3 bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-											placeholder="tu@correo.cl"
-											disabled={formStatus === "sending"}
-										/>
-									</FormInput>
-								</div>
-								<div>
-									<motion.button
-										type="submit"
-										whileHover={{ scale: 1.05 }}
-										whileTap={{ scale: 0.95 }}
-										disabled={formStatus === "sending"}
-										className="w-full bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors flex items-center justify-center disabled:opacity-70"
-									>
-										{formStatus === "sending" ? (
-											<>
-												<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-												<span>Enviando...</span>
-											</>
-										) : (
-											<>
-												Enviar Mensaje
-												<Send className="ml-2 h-5 w-5" />
-											</>
-										)}
-									</motion.button>
-								</div>
-								{formStatus === "error" && (
-									<p className="text-sm text-red-500 text-center mt-2">
-										Hubo un error al enviar tu mensaje. Por favor, intenta de
-										nuevo.
-									</p>
-								)}
-							</form>
-						)}
-					</motion.div>
+						{message && <p className="text-white mt-4 text-sm">{message}</p>}
+					</form>
 				</div>
 			</div>
 		</section>
